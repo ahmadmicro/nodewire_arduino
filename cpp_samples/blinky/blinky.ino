@@ -29,20 +29,57 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <nodewire.h>
-#include <bnode.h>
+#include <node.h>
 
-class myNode: public bNode
+class myNode: public Node
 {
+  int led = 13;
+  String val = "on"; //on, off or blink
+
   public:
   void init()
   {
-    iot.begin("node01");
+    iot.begin("blinky");
+    pinMode(led, OUTPUT);
+  }
 
-    board.value = new (double[1]) { 0 };
-    board.direction = new (char[1]) { 0 };
-    board.ports = new (String [1]) {F("led")};
-    board.address = new (int[1]) {13};
-    board.init(1);
+  void get(String port)
+  {
+       String response;
+       if (port == "led")
+       {
+          response = String("portvalue led ") +  val;
+       }
+       else if(port == "ports")
+       {
+          response = String("ports led ");
+       }
+       iot.transmit(response);
+  }
+
+  void set(String port)
+  {
+      String response;
+      if(port == "led")
+      {
+          val = iot.message->Params[1];
+          stopTimer();
+          if(val == "on")
+              digitalWrite(led, 1);
+           else if(val == "off")
+              digitalWrite(led, 0);
+           else if(val == "blink")
+               startTimer(500);
+          response = String("portvalue led ") + val;
+      }
+      iot.transmit(response);
+  }
+
+  bool ledon = false;
+  void timer()
+  {
+    if(ledon) digitalWrite(led, 1); else digitalWrite(led, 0);
+    ledon = !ledon;
   }
 };
 

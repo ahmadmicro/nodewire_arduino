@@ -36,7 +36,7 @@ class myNode: public Node
   public:
   void init()
   {
-    iot.begin("BASIC01");
+    iot.begin("basic");
   }
 };
 
