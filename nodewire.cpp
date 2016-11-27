@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void NodeWire::begin(char* address)
 {
-   this->myAddress = address;
+   myAddress = address;
    begin();
 }
 
@@ -44,6 +44,7 @@ bool NodeWire::messageArrived()
 {
   serialEvent();
   announciate();
+  checkSend();
   if(messageComplete)
   {
     SplitCommand();
@@ -68,17 +69,29 @@ void NodeWire::announciate()
 {
   if(ack==0)
   {
-    if(millis() - ackcount >= 5000)
+    if(millis() - ackcount >= 5000 && strlen(sendBuffer)==0)
     {
       ackcount = millis();
-      String response = ((iswifi)?String("cp RoutingVia node/" + myAddress + " "):String("cp ThisIs ")) + myAddress;
-      Serial.println(response);
+      nString response(sendBuffer);//todo using sendBuffer a bad idea?
+      if(iswifi)
+      {
+        response = "cp RoutingVia node/";
+        response+=myAddress;
+        response+=" ";
+      }
+      else
+      {
+        response = "cp ThisIs ";
+      }
+      response+=myAddress;
+      //Serial.println(sendBuffer);
     }
   }
 }
 
 void NodeWire::serialEvent() {
   while (Serial.available()) {
+    whenlastreceived = millis();
     // get the new byte:
     char inChar = (char)Serial.read();
     // add it to the inputString:
@@ -93,8 +106,27 @@ void NodeWire::serialEvent() {
   }
 }
 
-void NodeWire::transmit(String response) {
-   Serial.println(((message->Sender!=NULL)?String(message->Sender):String("remote")) + " " + response + " " + myAddress);
+bool NodeWire::transmit(nString sender, nString response) {
+   if(strlen(sendBuffer)==0)
+   {
+     nString r(sendBuffer);
+     r = sender; r+=" "; r+=response; r+=" "; r+= myAddress;
+     return true;
+   }
+   return false;
+}
+
+void NodeWire::checkSend(){
+  if(strlen(sendBuffer)!=0 && (millis()-whenlastreceived)>sendDelay)
+  {
+    Serial.println(sendBuffer);
+    memset(sendBuffer, '\0', sizeof(sendBuffer));
+  }
+}
+
+void NodeWire::configureZigbee()
+{
+
 }
 
 void NodeWire::resetmessage(){
@@ -116,7 +148,7 @@ void NodeWire::SplitCommand()
   if(message->Address == NULL ) return;
   message->Command = strtok (NULL, " ,");
   if(message->Command == NULL ) return;
-  cmd = String(message->Command);
+  cmd = message->Command;
   i = 0;
   do{
     message->Params[i] = strtok (NULL, " ,");

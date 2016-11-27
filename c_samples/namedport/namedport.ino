@@ -1,4 +1,4 @@
-v/*
+/*
 Copyright (c) 2016, nodewire.org
 All rights reserved.
 
@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 NodeWire iot;
 int led = 13;
 int val = 0;
-String response;
+nString response(new char[50]);
 
 void setup() {
   iot.begin();
@@ -45,35 +45,45 @@ void loop() {
   {
     if(iot.cmd == "set" || iot.cmd == "setportvalue")
     {
-        String port = iot.message->Params[0];
+        nString port = iot.message->Params[0];
         val = atoi(iot.message->Params[1]);
         if(port == "led")
         {
             digitalWrite(led, val);
-            response = String("portvalue ") + port + " " + String(val);
+            response = "portvalue "; response += port; response += " "; response += nString(val);
         }
         else if(port == "ports")
-           response = String("error attempt to write to readonly port ")  + port;
+        {
+           response = "error attempt to write to readonly port ";  response += port;
+        }
         else
-           response = String("port ")  + port + " not found";
-        iot.transmit(response);
+        {
+           response = "port "; response += port; response += " not found";
+        }
+        iot.transmit(iot.message->Sender, response.theBuf);
     }
     else if(iot.cmd == "get" || iot.cmd == "getportvalue")
     {
-        String port = iot.message->Params[0];
+        nString port = iot.message->Params[0];
         if(port == "led")
-           response = String("portvalue ") + port + " " + String(val);
+        {
+           response = "portvalue "; response += port;  response += " "; response += nString(val);
+        }
         else if(port == "ports")
         {
-           response = String("ports led ");
+           response = "ports led ";
         }
         else
-           response = String(iot.message->Sender) + " port "  + port + " not found " + iot.myAddress;
-        iot.transmit(response);
+        {
+           response = " port ";  response += port; response += " not found ";
+        }
+        iot.transmit(iot.message->Sender, response.theBuf);
     }
     else
     {
-        iot.transmit(String("unknown command ") + iot.cmd);
+        response = "unknown command ";
+        response+=iot.cmd;
+        iot.transmit(iot.message->Sender, response.theBuf);
     }
 
     iot.resetmessage();

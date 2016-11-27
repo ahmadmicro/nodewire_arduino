@@ -14,16 +14,38 @@ class Board
     long timeStarted = 0;
 
     bool in_changed = false;
+
+    //response Queue
+    int responseQueue[5]={-1,-1,-1,-1,-1};
+    int popResponse()
+    {
+      int v = responseQueue[0];
+      if(v !=-1)
+      for(int i=1;i!=4;i++)
+        responseQueue[i-1] = responseQueue[i];
+      return v;
+    }
+
+    void pushResponse(int v)
+    {
+      Serial.println("pushing");
+      int i = 0;
+      while(responseQueue[i]!=-1 && i<=4)
+        i++;
+      if(responseQueue[i]==-1)
+          responseQueue[i] = v;
+    }
+    // end response Queue
   public:
     double* value;
     char* direction ;
-    String* ports ;
+    nString* ports ;
     int* address;
     int noports = 0;
-    String ps="";
+
 
     int checkInterval = 200;
-    float checkResolution = 0.2;
+    float checkResolution = 0.25;
 
     void sleep(int duration)
     {
@@ -35,13 +57,12 @@ class Board
     {
       checkinputs(iot, true);
     }
-    void checkinputs(NodeWire iot)
-    {
-      checkinputs(&iot, true);
-    }
     void checkinputs(NodeWire* iot, bool report)
     {
-
+      if(sleeping && ((millis()-timeStarted)>_duration))
+      {
+        sleeping = false;
+      }
       if(millis()-twohundred > checkInterval)
       {
         twohundred = millis();
@@ -59,19 +80,39 @@ class Board
             if(!in_changed)
             {
               in_changed = true;
-              value[loopport] = inval;
+
               if(!sleeping && thenode!=NULL)
                 thenode->changed(loopport);
-              if(sleeping && (millis()-timeStarted)>_duration)
-              {
-                sleeping = false;
-              }
               if(report && iot->ack)
               {
-                String resp = "portvalue " + String(ports[loopport]) + " " + String(inval);
-                iot->transmit(resp);
+                char temp[40];
+                nString resp(temp);
+                resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += inval;//tocheck
+                bool result = iot->transmit(iot->remote, resp);
+                if(result==true)
+                {
+                  value[loopport] = inval;
+                }
+                else
+                {
+                  pushResponse(loopport);
+                  Serial.print("saving"); Serial.println(loopport);
+                }
               }
               in_changed = false;
+            }
+          }
+          else
+          {
+            //use window to send queued responses
+            int lp = popResponse();
+            if(lp!=-1)
+            {
+              Serial.println("popping");
+              char temp[50];
+              nString resp(temp);
+              resp = "portvalue "; resp += ports[lp]; resp += " "; resp += value[lp];
+              if(!iot->transmit(iot->remote, resp)) pushResponse(lp);
             }
           }
         }
@@ -82,7 +123,7 @@ class Board
       }
     }
 
-    int getportindex(String p)
+    int getportindex(nString p)
     {
       for(int i=0;i<noports;i++)
         if(ports[i]==p)
@@ -90,7 +131,7 @@ class Board
       return -1;
     }
 
-    double getValue(String p)
+    double getValue(nString p)
     {
       int ind = getportindex(p);
       if(ind!=-1)
@@ -106,16 +147,19 @@ class Board
       else
         return -1;
     }
-
-    void init(int num_ports=18, String type="uno")
+    void init(nString type)
+    {
+      init(18, type);
+    }
+    void init(int num_ports=18, nString type="other")
     {
       noports=num_ports;
       if(type=="uno" && num_ports==18)
       {
 	          noports=18;
-            value = new (double[18]){1,1,1,1,1,  1,1,1,1,1,  1,1,1,1,1,  1,0.5,0.5};//stores the value of the port
-            direction = new (char[18]){0,0,0,0,0,  0,0,0,0,0,  0,0,0,0,0,  0,0,1};//stores the direction of the port, 1=in, 0=out
-            ports = new (String[18]){"2","3","4","5","6","7","8","9","10","11","12","13","A0","A1","A2","A3","A4","A5"};
+            value = new (double[18]){1,1,1,1,1,  1,1,1,1,1,  1,1,1,1,1,  1,1,1};//stores the value of the port
+            direction = new (char[18]){0,0,0,0,0,  0,0,0,0,0,  0,0,0,0,0,  0,0,0};//stores the direction of the port, 1=in, 0=out
+            ports = new (nString[18]){"2","3","4","5","6","7","8","9","10","11","12","13","A0","A1","A2","A3","A4","A5"};
             address = new (int[18]){2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
       }
       /*else if(num_ports<20)
@@ -130,7 +174,7 @@ class Board
       {
        if(direction[port]==1)
        {
-           pinMode(address[port], INPUT_PULLUP);
+           pinMode(address[port], INPUT);
            //digitalWrite(address[port], 1);
        }
        else if(direction[port]==0)
@@ -145,7 +189,7 @@ class Board
     {
         double val = atof(v);
         long lval = val * 255;
-        int portindex  = getportindex(String(port));
+        int portindex  = getportindex(port);
         //String response;
         if(direction[portindex]==0)
         {
@@ -154,21 +198,22 @@ class Board
               analogWrite(address[portindex], lval);
           else
               digitalWrite(address[portindex], val);
+          thenode->get(port);
 	        return 0;
         }
 	      return -1;
     }
 
-    String in(char* port)
+    nString in(nString port)
     {
-        int portindex = getportindex(String(port));
+        int portindex = getportindex(port);
         if(portindex!=-1)
-      	    return String(value[portindex]);
+      	    return nString(value[portindex]);
       	else
-      	    return String("error");
+      	    return nString("error");
     }
 
-    void setdirection(String port, String direction1)
+    void setdirection(nString port, nString direction1)
     {
        int portindex  = getportindex(port);
        if(direction1=="in")
@@ -183,37 +228,39 @@ class Board
        }
     }
 
-    String properties(char* port)
+    nString properties(char* port)
     {
-        int portindex  = getportindex(String(port));
-        return (direction[portindex]==0?outputtype(portindex): inputtype(portindex)) + (direction[portindex]==1?" IN":" OUT");
+        char temp[15]; nString prop(temp);
+        int portindex  = getportindex(port);
+        prop = (direction[portindex]==0?outputtype(portindex): inputtype(portindex));
+        prop += (direction[portindex]==1?" IN":" OUT");
     }
 
-    String getports()
+    nString getports()
     {
-        if(ps == "")
+        char temp[100]="";//tocheck can't return stack based buffer
+        nString ps(temp);
+	      for(int i=0;i<noports;i++)
         {
-    	     for(int i=0;i<noports;i++)
-    	          ps = ps+ports[i] + " ";
-        }
+	          ps+=ports[i]; ps += " ";
+         }
 	      return ps;
     }
 
-    String inputtype(int pin)
+    nString inputtype(int pin)
     {
         if(address[pin]>=14)
-          return String("Analog");
+          return nString("Analog");
         else
-          return String("Digital");
+          return nString("Digital");
     }
 
-
-    String outputtype(int pin)
+    nString outputtype(int pin)
     {
         if(address[pin]==3 || address[pin]==5 || address[pin]==6 || address[pin]==9 || address[pin]==10 || address[pin]==11)
-          return String("PWM");
+          return nString("PWM");
         else
-          return String("Digital");
+          return nString("Digital");
     }
 };
 

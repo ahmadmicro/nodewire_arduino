@@ -8,43 +8,43 @@ class bNode: public Node
   protected:
     Board board;
   public:
-    virtual void get(String port)
+    virtual void get(nString port)
     {
-      String response;
+      char temp[100]; nString response(temp);
       if (port == "properties")
       {
-        response = String("properties ") + iot.message->Params[1] + " " + board.properties(iot.message->Params[1]);
+        response = "properties "; response += iot.message->Params[1]; response += " "; response += board.properties(iot.message->Params[1]);
       }
       else if (port == "ports")
       {
-        response = "ports " + board.getports();
+        response = "ports "; response += board.getports();
       }
       else
       {
-        response = "portvalue " + port + " " + board.in(iot.message->Params[0]);
+        response = "portvalue "; response += port; response += " "; response += board.in(port);
       }
-      iot.transmit(response);
+      iot.transmit(iot.remote, response);
     }
 
-    virtual void set(String port)
+    virtual void set(nString port)
     {
-      String response;
+      char temp[50]; nString response(temp);
       if (port == "direction")
       {
         board.setdirection(iot.message->Params[1], iot.message->Params[2]);
-        response = String("properties ") + iot.message->Params[1] + " " + board.properties(iot.message->Params[1]);
+        response = "properties "; response += iot.message->Params[1]; response += " "; response += board.properties(iot.message->Params[1]);
       }
       else
       {
         board.out(iot.message->Params[0], iot.message->Params[1]);
-        response = String("portvalue ") + port + " " + board.in(iot.message->Params[0]);
+        response = "portvalue "; response += port; response += " "; response += board.in(iot.message->Params[0]);
       }
-      iot.transmit(response);
+      iot.transmit(iot.remote, response);
     }
 
     virtual void loop()
     {
-        board.checkinputs(iot);
+        board.checkinputs(&iot);
     }
 };
 

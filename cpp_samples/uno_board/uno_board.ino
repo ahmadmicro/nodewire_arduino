@@ -37,7 +37,7 @@ public:
   void init()
   {
     iot.begin("node02");
-    board.init();
+    board.init("uno");
   }
 };
 

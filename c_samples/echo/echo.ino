@@ -33,13 +33,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 NodeWire iot;
 
 void setup() {
-  iot.begin("ECHO01");
+  iot.begin("echo");
 }
 
 void loop() {
     if (iot.messageArrived())
     {
-        iot.transmit(String(iot.message->Command)  + " " + iot.message->Params[0]);
+        nString response(new char[100]);
+        response = iot.message->Command;
+        int i = 0;
+        while(iot.message->Params[i+1]!=NULL)
+        {
+          response+=" ";
+          response+=iot.message->Params[i++];
+        }
+        iot.transmit(iot.message->Sender, response);
         iot.resetmessage();
     }
 }

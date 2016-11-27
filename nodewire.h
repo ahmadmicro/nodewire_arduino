@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef NODEWIRE_H
 #define NODEWIRE_H
-
+#include <nstring.h>
 #if ARDUINO >= 100
  #include "Arduino.h"
 #else
@@ -48,36 +48,52 @@ class Message
 
 class NodeWire
 {
+   private:
+     char nodeName[30];
+     char _cmd[20];
+     nString mybroadcastaddress = "any";
    public:
-	   String myAddress = "node01";
-     String mybroadcastaddress = "any";
+	   nString myAddress;
 	   int ack = 0;
 	   boolean messageComplete = false;
 	   Message* message;
-	   String cmd;
+	   nString cmd;
      bool iswifi = false;
-     String remote = "remote";
+     nString remote = "remote";
+     long sendDelay = 100;
 
 	   NodeWire()
 	   {
 		     message = new Message();
+         myAddress = nodeName;
+         myAddress = "node01";
+         cmd = _cmd;
      }
 
 	   void resetmessage();
      void begin();
      void begin(char*);
      bool messageArrived();
-     void transmit(String);
+     bool transmit(nString);
+     bool transmit(nString sender, nString response);
+     bool canSend();
+     void checkSend();
 
+  public:
      //candidates for private
      void announciate();
 	   void serialEvent();
 	   void SplitCommand();
+     void configureZigbee();
+
 
   private:
-  	char buffer[256];
+  	char buffer[150];
   	int index;
   	long ackcount = 500000;
+    long whenlastreceived;
+
+    char sendBuffer[100];
 };
 
 #endif

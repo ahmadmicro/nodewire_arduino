@@ -1,6 +1,13 @@
 #ifndef NODE_H
 #define NODE_H
 
+int freeRam ()
+{
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+
 class Node
 {
       long timerValue;
@@ -25,17 +32,61 @@ class Node
 
      bool checkTimer()
      {
-       if(timerEnabled && (millis()-timerValue>=timerAfter))
+       if(timerEnabled && (millis()-timerValue)>=timerAfter)
        {
          timerValue = millis();
          timer();
        }
      }
 
-     virtual void set(String port)
+     virtual void handleMessage()
+     {
+       if(iot.cmd == "set" || iot.cmd == "setportvalue")
+       {
+           nString port = iot.message->Params[0];
+           set(port);
+       }
+       else if(iot.cmd == "get" || iot.cmd == "getportvalue")
+       {
+            nString port = iot.message->Params[0];
+            if(port=="memory")
+            {
+              char temp[50]; nString result(temp);
+              //result = thenode->iot.message->Sender;
+              result = "portvalue memory ";
+              result += freeRam();
+
+              iot.transmit(iot.message->Sender, result);
+            }
+            else
+              get(port);
+       }
+       /*else if(thenode->iot.cmd == "getnoports")
+       {
+          String response = String("noports 14");
+          thenode->iot.transmit(response);
+       }*/
+       else if(iot.cmd == "version")
+       {
+          nString response = "PlainTalk v2.0";
+          iot.transmit(iot.message->Sender, response);
+       }
+       else if(iot.cmd == "unknown")
+       {/*ignore unknown */}
+       else
+       {
+           char temp[50]; nString response(temp);//todo what if the command is very long?
+           response = "unknown command ";
+           response += iot.cmd;
+
+           iot.transmit(iot.message->Sender, response);
+       }
+     }
+
+     virtual void set(nString port)
      {
      }
-     virtual void get(String port)
+     virtual void get(nString port)
      {
      }
      virtual void init()
@@ -76,30 +127,7 @@ void loop() {
   thenode->checkTimer();
   if (thenode->iot.messageArrived())
   {
-        if(thenode->iot.cmd == "set" || thenode->iot.cmd == "setportvalue")
-        {
-            String port = thenode->iot.message->Params[0];
-            thenode->set(port);
-        }
-        else if(thenode->iot.cmd == "get" || thenode->iot.cmd == "getportvalue")
-        {
-             String port = thenode->iot.message->Params[0];
-             thenode->get(port);
-        }
-        /*else if(thenode->iot.cmd == "getnoports")
-        {
-           String response = String("noports 14");
-           thenode->iot.transmit(response);
-        }*/
-        else if(thenode->iot.cmd == "version")
-        {
-           String response = String("PlainTalk v2.0");
-           thenode->iot.transmit(response);
-        }
-        else
-        {
-             thenode->iot.transmit(String("unknown command ") + thenode->iot.cmd);
-        }
+        thenode->handleMessage();
         thenode->iot.resetmessage();
   }
 }

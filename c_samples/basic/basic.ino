@@ -33,13 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 NodeWire iot;
 
 void setup() {
-  iot.begin("BASIC01");
+  iot.begin();
 }
 
 void loop() {
   if (iot.messageArrived())
   {
-    iot.transmit(String("unknown command ") + iot.cmd);
+    nString response(new char[50]);
+    response = "unknown command ";
+    response+=iot.cmd;
+    iot.transmit(iot.message->Sender, response);
     iot.resetmessage();
   }
 }
