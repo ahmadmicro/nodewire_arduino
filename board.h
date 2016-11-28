@@ -21,20 +21,26 @@ class Board
     {
       int v = responseQueue[0];
       if(v !=-1)
-      for(int i=1;i!=4;i++)
-        responseQueue[i-1] = responseQueue[i];
-      responseQueue[4] = -1;
+      {
+        for(int i=1;i!=5;i++)
+          responseQueue[i-1] = responseQueue[i];
+        responseQueue[4] = -1;
+      }
       return v;
     }
 
     void pushResponse(int v)
     {
-      Serial.println("pushing");
+      for(int j=0;j<=4;j++)
+          if(responseQueue[j]==v) return;
+
+      //Serial.print("pushing pos:");
       int i = 0;
       while(responseQueue[i]!=-1 && i<4)
         i++;
       if(responseQueue[i]==-1)
           responseQueue[i] = v;
+      //Serial.println(i);
     }
     // end response Queue
   public:
@@ -78,6 +84,7 @@ class Board
 
           if(abs(inval-value[loopport])>=checkResolution)
           {
+            value[loopport] = inval;
             if(!in_changed)
             {
               in_changed = true;
@@ -90,14 +97,10 @@ class Board
                 nString resp(temp);
                 resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += inval;//tocheck
                 bool result = iot->transmit(iot->remote, resp);
-                if(result==true)
-                {
-                  value[loopport] = inval;
-                }
-                else
+                if(result!=true)
                 {
                   pushResponse(loopport);
-                  Serial.print("saving"); Serial.println(loopport);
+                  //Serial.print("saving"); Serial.println(loopport);
                 }
               }
               in_changed = false;
@@ -109,7 +112,7 @@ class Board
             int lp = popResponse();
             if(lp!=-1)
             {
-              Serial.println("popping");
+              //Serial.println("popping");
               char temp[50];
               nString resp(temp);
               resp = "portvalue "; resp += ports[lp]; resp += " "; resp += value[lp];
