@@ -38,6 +38,7 @@ void NodeWire::begin(char* address)
 void NodeWire::begin()
 {
    Serial.begin(9600);
+   wdt_enable(WDTO_8S);
 }
 
 bool NodeWire::messageArrived()
@@ -67,6 +68,7 @@ bool NodeWire::messageArrived()
 }
 void NodeWire::announciate()
 {
+  wdt_reset();
   if(ack==0)
   {
     if(millis() - ackcount >= 5000 && strlen(sendBuffer)==0)

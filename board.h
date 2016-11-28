@@ -23,6 +23,7 @@ class Board
       if(v !=-1)
       for(int i=1;i!=4;i++)
         responseQueue[i-1] = responseQueue[i];
+      responseQueue[4] = -1;
       return v;
     }
 
@@ -30,7 +31,7 @@ class Board
     {
       Serial.println("pushing");
       int i = 0;
-      while(responseQueue[i]!=-1 && i<=4)
+      while(responseQueue[i]!=-1 && i<4)
         i++;
       if(responseQueue[i]==-1)
           responseQueue[i] = v;
@@ -198,7 +199,7 @@ class Board
               analogWrite(address[portindex], lval);
           else
               digitalWrite(address[portindex], val);
-          thenode->get(port);
+          if(!thenode->get(port)) pushResponse(portindex);
 	        return 0;
         }
 	      return -1;

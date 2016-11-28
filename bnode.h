@@ -8,7 +8,7 @@ class bNode: public Node
   protected:
     Board board;
   public:
-    virtual void get(nString port)
+    virtual bool get(nString port)
     {
       char temp[100]; nString response(temp);
       if (port == "properties")

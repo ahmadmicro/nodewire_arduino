@@ -86,7 +86,7 @@ class Node
      virtual void set(nString port)
      {
      }
-     virtual void get(nString port)
+     virtual bool get(nString port)
      {
      }
      virtual void init()

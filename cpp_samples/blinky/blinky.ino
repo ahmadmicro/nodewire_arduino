@@ -34,7 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class myNode: public Node
 {
   int led = 13;
-  String val = "on"; //on, off or blink
+
+  nString val = "blink"; //on, off or blink, reserve enough space for the longest string that will be used
 
   public:
   void init()
@@ -43,23 +44,23 @@ class myNode: public Node
     pinMode(led, OUTPUT);
   }
 
-  void get(String port)
+  void get(nString port)
   {
-       String response;
+       nString response(new char[100]);
        if (port == "led")
        {
-          response = String("portvalue led ") +  val;
+          response = "portvalue led "; response +=  val;
        }
        else if(port == "ports")
        {
-          response = String("ports led ");
+          response = "ports led ";
        }
-       iot.transmit(response);
+       iot.transmit(iot.message->Sender, response);
   }
 
-  void set(String port)
+  void set(nString port)
   {
-      String response;
+      nString response(new char[100]);
       if(port == "led")
       {
           val = iot.message->Params[1];
@@ -70,9 +71,9 @@ class myNode: public Node
               digitalWrite(led, 0);
            else if(val == "blink")
                startTimer(500);
-          response = String("portvalue led ") + val;
+          response = "portvalue led "; response += val;
       }
-      iot.transmit(response);
+      iot.transmit(iot.message->Sender, response);
   }
 
   bool ledon = false;
