@@ -197,13 +197,17 @@ class Board
         //String response;
         if(direction[portindex]==0)
         {
-          value[portindex] = val;
-          if(outputtype(portindex)=="PWM")
-              analogWrite(address[portindex], lval);
-          else
-              digitalWrite(address[portindex], val);
-          if(!thenode->get(port)) pushResponse(portindex);
+          if(value[portindex] != val && value[portindex] != lval)
+          {
+            value[portindex] = val;
+            if(outputtype(portindex)=="PWM")
+                analogWrite(address[portindex], lval);
+            else
+                digitalWrite(address[portindex], val);
+            if(!thenode->get(port)) pushResponse(portindex);
+          }
 	        return 0;
+
         }
 	      return -1;
     }
@@ -234,7 +238,7 @@ class Board
 
     nString properties(char* port)
     {
-        char temp[15]; nString prop(temp);
+        char temp[15]; nString prop(temp); prop.clearBuffer(15);
         int portindex  = getportindex(port);
         prop = (direction[portindex]==0?outputtype(portindex): inputtype(portindex));
         prop += (direction[portindex]==1?" IN":" OUT");

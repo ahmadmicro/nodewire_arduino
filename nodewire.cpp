@@ -113,15 +113,17 @@ bool NodeWire::transmit(nString sender, nString response) {
    {
      nString r(sendBuffer);
      r = sender; r+=" "; r+=response; r+=" "; r+= myAddress;
-     return true;
+      return true;
    }
    return false;
 }
 
 void NodeWire::checkSend(){
-  if(strlen(sendBuffer)!=0 && (millis()-whenlastreceived)>sendDelay)
+  if(strlen(sendBuffer)!=0 && Serial.available()==0 && (millis()-whenlastreceived)>sendDelay)
   {
     Serial.println(sendBuffer);
+    serialEvent();//not tested.  receive a copy of the message sent
+    if(strncpy(sendBuffer,buffer, strlen(sendBuffer))!=0) return;//not tested. detect collision
     memset(sendBuffer, '\0', sizeof(sendBuffer));
   }
 }

@@ -23,6 +23,11 @@ class nString{
         dtostrf(buff, 6, 2, theBuf);
       }
 
+      void clearBuffer(int size)
+      {
+        memset(theBuf, '\0', size);
+      }
+
       nString operator=(const nString& op)
       {
         if(theBuf==NULL)

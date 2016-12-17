@@ -23,7 +23,7 @@ class bNode: public Node
       {
         response = "portvalue "; response += port; response += " "; response += board.in(port);
       }
-      iot.transmit(iot.remote, response);
+      iot.transmit(iot.message->Sender, response);
     }
 
     virtual void set(nString port)
@@ -39,7 +39,7 @@ class bNode: public Node
         board.out(iot.message->Params[0], iot.message->Params[1]);
         response = "portvalue "; response += port; response += " "; response += board.in(iot.message->Params[0]);
       }
-      iot.transmit(iot.remote, response);
+      iot.transmit(iot.message->Sender, response);
     }
 
     virtual void loop()

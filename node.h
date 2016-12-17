@@ -127,7 +127,8 @@ void loop() {
   thenode->checkTimer();
   if (thenode->iot.messageArrived())
   {
-        thenode->handleMessage();
+        if(thenode->iot.myAddress != thenode->iot.message->Sender)
+           thenode->handleMessage();
         thenode->iot.resetmessage();
   }
 }
