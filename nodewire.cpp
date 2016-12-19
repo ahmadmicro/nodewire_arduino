@@ -37,7 +37,7 @@ void NodeWire::begin(char* address)
 
 void NodeWire::begin()
 {
-   Serial.begin(9600);
+   Serial.begin(38400);
    wdt_enable(WDTO_8S);
 }
 
@@ -123,7 +123,11 @@ void NodeWire::checkSend(){
   {
     Serial.println(sendBuffer);
     serialEvent();//not tested.  receive a copy of the message sent
-    if(strncpy(sendBuffer,buffer, strlen(sendBuffer))!=0) return;//not tested. detect collision
+    if(strncmp(sendBuffer,buffer, strlen(buffer))!=0)
+    {
+      whenlastreceived = millis();
+      return;//not tested. detect collision
+    }
     memset(sendBuffer, '\0', sizeof(sendBuffer));
   }
 }

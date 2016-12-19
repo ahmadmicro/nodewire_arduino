@@ -119,6 +119,34 @@ class nString{
         if(strcmp(theBuf, op)==0) return false; else return true;
       }
 
+
+      nString find(nString sub)
+      {
+          for(int i=0;i<=strlen(theBuf);i++)
+          {
+            int n = strlen(sub.theBuf);
+            if(strncmp(sub.theBuf, theBuf+i, n)==0) return nString(theBuf+i);
+          }
+
+          return nString(theBuf+strlen(theBuf));
+      }
+
+      nString findlast(nString sub)
+      {
+        int result;
+        for(int i=0;i<=strlen(theBuf);i++)
+        {
+          int n = strlen(sub.theBuf);
+          if(strncmp(sub.theBuf, theBuf+i, n)==0) result=i;
+        }
+        return nString(theBuf+result);
+      }
+
+      nString index(int i)
+      {
+        return nString(theBuf+i);
+      }
+
 };
 
 #endif
