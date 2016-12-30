@@ -49,7 +49,7 @@ class Message
 
 class NodeWire
 {
-   private:
+   protected:
      char nodeName[30];
      char _cmd[20];
      nString mybroadcastaddress = "any";
@@ -72,23 +72,23 @@ class NodeWire
      }
 
 	   void resetmessage();
-     void begin();
-     void begin(char*);
+     virtual void begin();
+     virtual void begin(char*);
      bool messageArrived();
-     bool transmit(nString);
-     bool transmit(nString sender, nString response);
+     //virtual bool transmit(nString);
+     virtual bool transmit(nString sender, nString response);
      bool canSend();
-     void checkSend();
+     virtual void checkSend();
 
   public:
      //candidates for private
-     void announciate();
-	   void serialEvent();
+     virtual void announciate();
+	   virtual void serialEvent();
 	   void SplitCommand();
      void configureZigbee();
 
 
-  private:
+  protected:
   	char buffer[150];
   	int index;
   	long ackcount = 500000;

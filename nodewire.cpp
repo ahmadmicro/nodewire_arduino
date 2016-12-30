@@ -112,7 +112,12 @@ bool NodeWire::transmit(nString sender, nString response) {
    if(strlen(sendBuffer)==0)
    {
      nString r(sendBuffer);
-     r = sender; r+=" "; r+=response; r+=" "; r+= myAddress;
+     if(strlen(sender.theBuf)>1)
+        r = sender;
+     else
+        r = remote;
+     r+=" ";
+     r+=response; r+=" "; r+= myAddress;
       return true;
    }
    return false;

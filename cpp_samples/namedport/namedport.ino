@@ -28,7 +28,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <nodewire.h>
+#include <tcpclient.h>
 #include <bnode.h>
 
 class myNode: public bNode
@@ -40,7 +40,7 @@ class myNode: public bNode
 
     board.value = new (double[1]) { 0 };
     board.direction = new (char[1]) { 0 };
-    board.ports = new (String [1]) {F("led")};
+    board.ports = new (nString [1]) {"led"};
     board.address = new (int[1]) {13};
     board.init(1);
   }

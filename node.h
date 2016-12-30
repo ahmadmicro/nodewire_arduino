@@ -15,8 +15,11 @@ class Node
       bool timerEnabled = false;
 
     public:
+      #ifdef TCPCLIENT_H
+     TCPClient iot;
+     #else
      NodeWire iot;
-
+     #endif
 
      void startTimer(int duration)
      {
