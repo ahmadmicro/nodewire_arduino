@@ -41,4 +41,6 @@ public:
   }
 };
 
-Node* thenode = new myNode();
+void setup() {
+   setNode(new myNode());
+}

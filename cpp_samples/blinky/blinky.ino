@@ -44,7 +44,7 @@ class myNode: public Node
     pinMode(led, OUTPUT);
   }
 
-  void get(nString port)
+  bool get(nString port)
   {
        nString response(new char[100]);
        if (port == "led")
@@ -54,6 +54,10 @@ class myNode: public Node
        else if(port == "ports")
        {
           response = "ports led ";
+       }
+       else if(port == "properties")
+       {
+          response = "properties led LIST on off blink";
        }
        iot.transmit(iot.message->Sender, response);
   }
@@ -84,4 +88,6 @@ class myNode: public Node
   }
 };
 
-Node* thenode = new myNode();
+void setup() {
+   setNode(new myNode());
+}

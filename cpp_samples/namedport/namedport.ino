@@ -28,7 +28,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <tcpclient.h>
+#include <nodewire.h>
 #include <bnode.h>
 
 class myNode: public bNode
@@ -46,4 +46,6 @@ class myNode: public bNode
   }
 };
 
-Node* thenode = new myNode();
+void setup() {
+   setNode(new myNode());
+}

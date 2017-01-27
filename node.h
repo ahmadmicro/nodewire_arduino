@@ -15,10 +15,14 @@ class Node
       bool timerEnabled = false;
 
     public:
-      #ifdef TCPCLIENT_H
-     TCPClient iot;
+     #ifdef TCPCLIENT_H
+         TCPClient iot;
      #else
-     NodeWire iot;
+       #ifdef MODEM_CLIENT_H
+          ModemClient iot;
+       #else
+          NodeWire iot;
+       #endif
      #endif
 
      void startTimer(int duration)
@@ -88,10 +92,13 @@ class Node
 
      virtual void set(nString port)
      {
+
      }
+
      virtual bool get(nString port)
      {
      }
+
      virtual void init()
      {
 	      iot.begin();
@@ -111,12 +118,7 @@ class Node
      }
 };
 
-
-extern Node* thenode;
-
-void setup() {
-   thenode->init();
-}
+extern Node* __thenode;
 
 void wait(long ms)
 {
@@ -126,14 +128,22 @@ void wait(long ms)
 }
 
 void loop() {
-  thenode->loop();
-  thenode->checkTimer();
-  if (thenode->iot.messageArrived())
+  __thenode->loop();
+  __thenode->checkTimer();
+  if (__thenode->iot.messageArrived())
   {
-        if(thenode->iot.myAddress != thenode->iot.message->Sender)
-           thenode->handleMessage();
-        thenode->iot.resetmessage();
+        __thenode->handleMessage();
+        __thenode->iot.resetmessage();
   }
 }
 
+void setNode(Node* node)
+{
+  __thenode = node;
+  __thenode->init();
+}
+void setup() {
+   //setNode(new myNode());
+   __thenode->init();
+}
 #endif

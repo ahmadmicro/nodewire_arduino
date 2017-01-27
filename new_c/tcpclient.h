@@ -80,16 +80,7 @@ public:
        {
          ackcount = millis();
          nString response(sendBuffer);//todo using sendBuffer a bad idea?
-         if(iswifi)
-         {
-           response = "cp RoutingVia node/";
-           response+=myAddress;
-           response+=" ";
-         }
-         else
-         {
-           response = "cp ThisIs ";
-         }
+         response = "cp ThisIs ";
          response+=instance;
          response+=":";
          response+=myAddress;

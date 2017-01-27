@@ -36,7 +36,7 @@ class myNode: public bNode
 public:
   void init()
   {
-    iot.begin("node02");
+    iot.begin("node01");
     //iot.iswifi = true;
     board.value = new (double[18]){1,1,1,1,1,  1,1,1,1,1,  1,1,1,1,1,  1,0.5,0.5};//stores the value of the port
     board.direction = new (char[18]){0,0,0,0,0,  0,0,0,0,0,  0,0,0,0,0,  0,0,1};//stores the direction of the port, 1=in, 0=out

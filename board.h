@@ -2,7 +2,7 @@
 #define BOARD_H
 #include <node.h>
 
-extern Node* thenode;
+extern Node* __thenode;
 
 class Board
 {
@@ -77,7 +77,9 @@ class Board
         {
           double inval;
 
-          if(address[loopport]>=14)
+          if(address[loopport]==-1)
+               inval = read(loopport);
+          else if(address[loopport]>=14)
                inval = analogRead(address[loopport])/1023.0;
            else
                inval= digitalRead(address[loopport]);
@@ -89,8 +91,8 @@ class Board
             {
               in_changed = true;
 
-              if(!sleeping && thenode!=NULL)
-                thenode->changed(loopport);
+              if(!sleeping && __thenode!=NULL)
+                __thenode->changed(loopport);
               if(report && iot->ack)
               {
                 char temp[40];
@@ -127,6 +129,17 @@ class Board
       }
     }
 
+    virtual double read(int portIndex)
+    {
+      //override this to implement a custom port reader
+      return 0;
+    }
+
+    virtual void write(int portIndex, double val)
+    {
+      //override to implement custom port writer
+    }
+
     int getportindex(nString p)
     {
       for(int i=0;i<noports;i++)
@@ -142,7 +155,9 @@ class Board
       {
         double inval;
 
-        if(address[ind]>=14)
+        if(address[loopport]==-1)
+             inval = read(loopport);
+        else if(address[ind]>=14)
              inval = analogRead(address[ind])/1023.0;
          else
              inval= digitalRead(address[ind]);
@@ -166,25 +181,23 @@ class Board
             ports = new (nString[18]){"2","3","4","5","6","7","8","9","10","11","12","13","A0","A1","A2","A3","A4","A5"};
             address = new (int[18]){2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
       }
-      /*else if(num_ports<20)
-      {
-	    noports=num_ports;
-	    value = new double[num_ports];
-            direction = new char[num_ports];
-            ports = new String[num_ports];
-            address = new int[num_ports];
-      }*/
       for(int port=0;port<noports;port++)
       {
        if(direction[port]==1)
        {
-           pinMode(address[port], INPUT);
+           pinMode(address[port], INPUT_PULLUP);
            //digitalWrite(address[port], 1);
        }
        else if(direction[port]==0)
        {
            pinMode(address[port], OUTPUT);
-           digitalWrite(address[port], value[port]);
+
+           if(outputtype(port)=="PWM")
+               analogWrite(address[port], value[port]);
+           else if(outputtype(port)=="Digital")
+               digitalWrite(address[port], value[port]);
+           else
+               write(port, value[port]);
        }
       }
     }
@@ -202,9 +215,11 @@ class Board
             value[portindex] = val;
             if(outputtype(portindex)=="PWM")
                 analogWrite(address[portindex], lval);
-            else
+            else if(outputtype(portindex)=="Digital")
                 digitalWrite(address[portindex], val);
-            if(!thenode->get(port)) pushResponse(portindex);
+            else
+                write(portindex, lval);
+            if(!__thenode->get(port)) pushResponse(portindex);
           }
 	        return 0;
 
@@ -228,6 +243,7 @@ class Board
        {
             pinMode(address[portindex], INPUT_PULLUP);
             direction[portindex] = 1;
+            //digitalWrite(address[portindex], 1);
        }
        else if(direction1=="out")
        {

@@ -52,4 +52,6 @@ class myNode: public Node
   }
 };
 
-Node* thenode = new myNode();
+void setup() {
+   setNode(new myNode());
+}

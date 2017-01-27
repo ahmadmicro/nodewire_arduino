@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2016, NodeWire.org.ng
+Copyright (c) 2016, nodewire.org
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -11,15 +11,15 @@ modification, are permitted provided that the following conditions are met:
    documentation and/or other materials provided with the distribution.
 3. All advertising materials mentioning features or use of this software
    must display the following acknowledgement:
-   This product includes software developed by NodeWire.org.ng.
-4. Neither the name of NodeWire.org.ng nor the
+   This product includes software developed by nodewire.org.
+4. Neither the name of nodewire.org nor the
    names of its contributors may be used to endorse or promote products
    derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY NodeWire.org.ng ''AS IS'' AND ANY
+THIS SOFTWARE IS PROVIDED BY nodewire.org ''AS IS'' AND ANY
 EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL NodeWire.org.ng BE LIABLE FOR ANY
+DISCLAIMED. IN NO EVENT SHALL nodewire.org BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -27,57 +27,20 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <nodewire.h>
+#include <node.h>
 
-#ifndef NODEWIREMQTT_H
-#define NODEWIREMQTT_H
+Node thenode;
 
-#if ARDUINO >= 100
- #include "Arduino.h"
-#else
- #include "WProgram.h"
-#endif
+void setup() {
+   thenode.init();
+}
 
-class Message
-{
-   public:
-    	char* Address;
-    	char* Command;
-    	char* Params[32];
-    	char* Sender;
-};
-
-class NodeWire
-{
-   public:
-	   String myAddress = "node01";
-     String mybroadcastaddress = "any";
-	   int ack = 0;
-	   boolean messageComplete = false;
-	   Message* message;
-	   String cmd;
-     bool iswifi = false;
-     String remote = "remote";
-
-	   NodeWire()
-	   {
-		     message = new Message();
-     }
-
-	   void resetmessage();
-     void begin();
-     void begin(char*);
-     bool messageArrived();
-     void transmit(String);
-
-     //candidates for private
-     void announciate();
-	   void serialEvent();
-	   void SplitCommand();
-
-  private:
-  	char buffer[256];
-  	int index;
-  	long ackcount = 500000;
-};
-
-#endif
+void loop() {
+  if (thenode.iot.messageArrived())
+  {
+        if(thenode.iot.myAddress != thenode.iot.message->Sender)
+           thenode.handleMessage();
+        thenode.iot.resetmessage();
+  }
+}

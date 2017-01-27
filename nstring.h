@@ -11,6 +11,7 @@ class nString{
   private:
   public:
       char* theBuf = NULL;
+      char altBuf[10];
 
       nString(){}
       nString(char* buff)
@@ -19,7 +20,7 @@ class nString{
       }
       nString(double buff)
       {
-        theBuf = "char[10]  ";
+        theBuf = altBuf;
         dtostrf(buff, 6, 2, theBuf);
       }
 
@@ -31,27 +32,27 @@ class nString{
       nString operator=(const nString& op)
       {
         if(theBuf==NULL)
-          theBuf = op.theBuf;
+          theBuf = altBuf;
         else
           strcpy(theBuf, op.theBuf);
       }
       nString operator=(char* op)
       {
         if(theBuf==NULL)
-          theBuf = op;
+          theBuf = altBuf;
         else
           strcpy(theBuf, op);
       }
       nString operator=(int op)
       {
         if(theBuf==NULL)
-          theBuf = "new char[10]";
+          theBuf = altBuf;
         itoa(op, theBuf, 10);
       }
       nString operator=(double op)
       {
         if(theBuf==NULL)
-          theBuf = "new char[10]";
+          theBuf = altBuf;
         dtostrf(op, 6, 2, theBuf);
       }
 
@@ -118,6 +119,10 @@ class nString{
       {
         if(strcmp(theBuf, op)==0) return false; else return true;
       }
+      /*operator char*()
+      {
+        return theBuf;
+      }*/
 
 
       nString find(nString sub)

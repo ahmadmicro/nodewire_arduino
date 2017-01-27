@@ -49,7 +49,7 @@ bool NodeWire::messageArrived()
   if(messageComplete)
   {
     SplitCommand();
-    if(myAddress==message->Address || mybroadcastaddress==message->Address)
+    if((myAddress==message->Address || mybroadcastaddress==message->Address) && myAddress != message->Sender)
     {
         if(cmd == "ping")
         {
@@ -75,16 +75,7 @@ void NodeWire::announciate()
     {
       ackcount = millis();
       nString response(sendBuffer);//todo using sendBuffer a bad idea?
-      if(iswifi)
-      {
-        response = "cp RoutingVia node/";
-        response+=myAddress;
-        response+=" ";
-      }
-      else
-      {
-        response = "cp ThisIs ";
-      }
+      response = "cp ThisIs ";
       response+=myAddress;
       //Serial.println(sendBuffer);
     }
@@ -172,4 +163,7 @@ void NodeWire::SplitCommand()
    else
     message->Sender = strtok (NULL, " ,");
    message->Sender[strlen(message->Sender)-1] = 0;
+   i = 0;
+   while(message->Sender[i]!='\r' && message->Sender[i]!='\n')i++;
+   message->Sender[i]=0;
 }

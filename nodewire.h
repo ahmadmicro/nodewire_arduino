@@ -59,7 +59,6 @@ class NodeWire
 	   boolean messageComplete = false;
 	   Message* message;
 	   nString cmd;
-     bool iswifi = false;
      nString remote = "remote";
      long sendDelay = 100;
 
