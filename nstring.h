@@ -11,7 +11,6 @@ class nString{
   private:
   public:
       char* theBuf = NULL;
-      char altBuf[10];
 
       nString(){}
       nString(char* buff)
@@ -20,7 +19,7 @@ class nString{
       }
       nString(double buff)
       {
-        theBuf = altBuf;
+        theBuf = "char[10]  ";
         dtostrf(buff, 6, 2, theBuf);
       }
 
@@ -32,27 +31,27 @@ class nString{
       nString operator=(const nString& op)
       {
         if(theBuf==NULL)
-          theBuf = altBuf;
+          theBuf = op.theBuf;
         else
           strcpy(theBuf, op.theBuf);
       }
       nString operator=(char* op)
       {
         if(theBuf==NULL)
-          theBuf = altBuf;
+          theBuf = op;
         else
           strcpy(theBuf, op);
       }
       nString operator=(int op)
       {
         if(theBuf==NULL)
-          theBuf = altBuf;
+          theBuf = "0123456789";
         itoa(op, theBuf, 10);
       }
       nString operator=(double op)
       {
         if(theBuf==NULL)
-          theBuf = altBuf;
+          theBuf = "0123456789";
         dtostrf(op, 6, 2, theBuf);
       }
 

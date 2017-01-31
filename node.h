@@ -118,7 +118,9 @@ class Node
      }
 };
 
-extern Node* __thenode;
+Node* __thenode;
+
+char instance[20];
 
 void wait(long ms)
 {
@@ -142,8 +144,11 @@ void setNode(Node* node)
   __thenode = node;
   __thenode->init();
 }
-void setup() {
-   //setNode(new myNode());
-   __thenode->init();
+
+void setInstance(nString inst)
+{
+  nString theInst = nString(instance);
+  theInst = inst;
 }
+
 #endif

@@ -33,8 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class myNode: public Node
 {
+  nString response = nString(new char[100]);
   int led = 13;
-
   nString val = "blink"; //on, off or blink, reserve enough space for the longest string that will be used
 
   public:
@@ -46,7 +46,6 @@ class myNode: public Node
 
   bool get(nString port)
   {
-       nString response(new char[100]);
        if (port == "led")
        {
           response = "portvalue led "; response +=  val;
@@ -64,7 +63,6 @@ class myNode: public Node
 
   void set(nString port)
   {
-      nString response(new char[100]);
       if(port == "led")
       {
           val = iot.message->Params[1];

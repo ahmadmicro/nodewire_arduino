@@ -163,7 +163,9 @@ void NodeWire::SplitCommand()
    else
     message->Sender = strtok (NULL, " ,");
    message->Sender[strlen(message->Sender)-1] = 0;
-   i = 0;
-   while(message->Sender[i]!='\r' && message->Sender[i]!='\n')i++;
+   i = strlen(message->Sender);
+   int j;
+   for(j=0;j<i;j++)
+       if(message->Sender[i]!='\r' || message->Sender[i]!='\n') break;
    message->Sender[i]=0;
 }
