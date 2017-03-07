@@ -48,11 +48,11 @@ public:
       {
           //baud: 01,02,03,04,05 for 9600, 19200, 38400, 57600, 115200 respectively
           uint8_t cmd[] = {0xFC, 0x01, 0x91, 0x06, 0x00, 0xF6, 0x00};
-          uint8_t response[2];
+          uint8_t response[6];
           cmd[4] = baud;
 
           send(cmd, sizeof(cmd));
-          receive(response, 2);
+          receive(response, 6);
       }
 
       bool testBaud()

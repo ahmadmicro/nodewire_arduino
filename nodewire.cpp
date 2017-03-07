@@ -38,7 +38,6 @@ void NodeWire::begin(char* address)
 void NodeWire::begin()
 {
    Serial.begin(38400);
-   wdt_enable(WDTO_8S);
 }
 
 bool NodeWire::messageArrived()
@@ -68,7 +67,6 @@ bool NodeWire::messageArrived()
 }
 void NodeWire::announciate()
 {
-  wdt_reset();
   if(ack==0)
   {
     if(millis() - ackcount >= 5000 && strlen(sendBuffer)==0)
@@ -81,19 +79,38 @@ void NodeWire::announciate()
     }
   }
 }
+/*
+index < len(nodeName)  buffer!=nodeName
+   no                     no                  no          yes
+   no                     yes                 no          yes
+   yes                    no                  no          yes
+   yes                    yes                 yes         no
 
+     12345
+node -nnnn
+abcd -yyyy
+*/
 void NodeWire::serialEvent() {
   while (Serial.available()) {
     whenlastreceived = millis();
     // get the new byte:
     char inChar = (char)Serial.read();
     // add it to the inputString:
-    buffer[index] = inChar; index++;
+
+    if(!abort)
+    {
+      buffer[index] = inChar; index++;
+    }
+
+    if((index < strlen(nodeName) && strncmp(buffer, nodeName, index)!=0) && (index <3 && strncmp(buffer, "any", index)!=0))
+      abort = true;
     // if the incoming character is a newline, set a flag
     // so the main loop can do something about it:
-    if (inChar == '\n' || inChar == '\r' || index >= sizeof(buffer)-1) {
+    if (inChar == '\n' || inChar == '\r' || index >= (sizeof(buffer)-2)) {
       messageComplete = true;
       index = 0;
+      //Serial.print(buffer);
+      abort = false;
       return;
     }
   }

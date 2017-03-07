@@ -1,6 +1,15 @@
 #ifndef NSTRING_H
 #define NSTRING_H
 
+#if defined (__STM32F1__)
+#include <itoa.h>
+#endif
+
+#if  defined (STM32_HIGH_DENSITY)
+#include <itoa.h>
+#include <avr/dtostrf.h>
+#endif
+
 #if ARDUINO >= 100
  #include "Arduino.h"
 #else

@@ -1,6 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 #include <node.h>
+#include <avr/wdt.h>
 
 extern Node* __thenode;
 
@@ -44,6 +45,7 @@ class Board
     }
     // end response Queue
   public:
+
     double* value;
     char* direction ;
     nString* ports ;
@@ -62,7 +64,14 @@ class Board
     }
     void checkinputs(NodeWire* iot)
     {
+      wdt_reset();
       checkinputs(iot, true);
+    }
+    int freeRam ()
+    {
+      extern int __heap_start, *__brkval;
+      int v;
+      return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
     }
     void checkinputs(NodeWire* iot, bool report)
     {
@@ -78,7 +87,7 @@ class Board
           double inval;
 
           if(address[loopport]==-1)
-               inval = read(loopport);
+               inval = atof(__thenode->read(loopport).theBuf); //read(loopport);
           else if(address[loopport]>=14)
                inval = analogRead(address[loopport])/1023.0;
            else
@@ -129,17 +138,6 @@ class Board
       }
     }
 
-    virtual double read(int portIndex)
-    {
-      //override this to implement a custom port reader
-      return 0;
-    }
-
-    virtual void write(int portIndex, double val)
-    {
-      //override to implement custom port writer
-    }
-
     int getportindex(nString p)
     {
       for(int i=0;i<noports;i++)
@@ -156,7 +154,7 @@ class Board
         double inval;
 
         if(address[loopport]==-1)
-             inval = read(loopport);
+             inval = atof(__thenode->read(loopport).theBuf);
         else if(address[ind]>=14)
              inval = analogRead(address[ind])/1023.0;
          else
@@ -172,6 +170,7 @@ class Board
     }
     void init(int num_ports=18, nString type="other")
     {
+      wdt_enable(WDTO_8S);
       noports=num_ports;
       if(type=="uno" && num_ports==18)
       {
@@ -197,7 +196,7 @@ class Board
            else if(outputtype(port)=="Digital")
                digitalWrite(address[port], value[port]);
            else
-               write(port, value[port]);
+               __thenode->write(port, value[port]); //write(port, value[port]);
        }
       }
     }
@@ -218,7 +217,7 @@ class Board
             else if(outputtype(portindex)=="Digital")
                 digitalWrite(address[portindex], val);
             else
-                write(portindex, lval);
+                __thenode->write(portindex, lval);//write(portindex, lval);
             if(!__thenode->get(port)) pushResponse(portindex);
           }
 	        return 0;
@@ -275,6 +274,8 @@ class Board
     {
         if(address[pin]>=14)
           return nString("Analog");
+        else if (address[pin] ==  -1)
+            return "Custom";
         else
           return nString("Digital");
     }
@@ -283,6 +284,8 @@ class Board
     {
         if(address[pin]==3 || address[pin]==5 || address[pin]==6 || address[pin]==9 || address[pin]==10 || address[pin]==11)
           return nString("PWM");
+        else if (address[pin] ==  -1)
+          return "Custom";
         else
           return nString("Digital");
     }

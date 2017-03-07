@@ -88,8 +88,6 @@ class ModemClient: public NodeWire
                 Serial.print(".");
                 delay(1000);
             }
-
-            wdt_enable(WDTO_8S);
         }
 
         void checkSend()
@@ -119,7 +117,6 @@ class ModemClient: public NodeWire
 
         void announciate()
         {
-            wdt_reset();
             if (ack == 0)
             {
                 if (millis() - ackcount >= 5000 && strlen(sendBuffer) == 0)

@@ -34,10 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class myNode: public Node
 {
   public:
-  void init()
-  {
-    iot.begin("basic");
-  }
+    void init()
+    {
+      Node::init("basic");
+    }
 };
 
 void setup() {

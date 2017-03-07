@@ -1,12 +1,6 @@
 #ifndef NODE_H
 #define NODE_H
 
-int freeRam ()
-{
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-}
 
 class Node
 {
@@ -56,17 +50,7 @@ class Node
        else if(iot.cmd == "get" || iot.cmd == "getportvalue")
        {
             nString port = iot.message->Params[0];
-            if(port=="memory")
-            {
-              char temp[50]; nString result(temp);
-              //result = thenode->iot.message->Sender;
-              result = "portvalue memory ";
-              result += freeRam();
-
-              iot.transmit(iot.message->Sender, result);
-            }
-            else
-              get(port);
+            get(port);
        }
        /*else if(thenode->iot.cmd == "getnoports")
        {
@@ -82,7 +66,7 @@ class Node
        {/*ignore unknown */}
        else
        {
-           char temp[50]; nString response(temp);//todo what if the command is very long?
+           char temp[40]; nString response(temp);//todo what if the command is very long?
            response = "unknown command ";
            response += iot.cmd;
 
@@ -99,10 +83,29 @@ class Node
      {
      }
 
+     virtual nString read(int portIndex)
+     {
+       //override this to implement a custom port reader
+       return "0";
+     }
+
+     virtual void write(int portIndex, nString val)
+     {
+       //override to implement custom port writer
+     }
+
+     virtual void init(char* name)
+     {
+         iot.begin(name);
+         get("name");
+     }
+
      virtual void init()
      {
 	      iot.begin();
+        get("name");
      }
+
      virtual void loop()
      {
        //make this function as short as possible in order not to impact the realtime performance of the software

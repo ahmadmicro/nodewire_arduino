@@ -40,7 +40,7 @@ class myNode: public Node
   public:
   void init()
   {
-    iot.begin("blinky");
+    Node::init("blinky");
     pinMode(led, OUTPUT);
   }
 

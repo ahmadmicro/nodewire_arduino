@@ -2,7 +2,11 @@
 #define TCPCLIENT_H
 
 #include <nodewire.h>
+#if defined (__STM32F1__)
+#include <Ethernet_STM.h>
+#else
 #include <Ethernet.h>
+#endif
 #include <nstring.h>
 
 IPAddress server(138,197,6,173);
@@ -44,8 +48,6 @@ public:
         break;
       }
     }
-
-    wdt_enable(WDTO_8S);
   }
 
    void checkSend()
@@ -74,7 +76,6 @@ public:
 
    void announciate()
    {
-     wdt_reset();
      if(ack==0)
      {
        if(millis() - ackcount >= 5000 && strlen(sendBuffer)==0)

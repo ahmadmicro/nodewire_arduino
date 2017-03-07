@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef NODEWIRE_H
 #define NODEWIRE_H
-#include <avr/wdt.h>
 #include <nstring.h>
 #if ARDUINO >= 100
  #include "Arduino.h"
@@ -61,6 +60,7 @@ class NodeWire
 	   nString cmd;
      nString remote = "remote";
      long sendDelay = 100;
+     bool abort = false;
 
 	   NodeWire()
 	   {
