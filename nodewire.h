@@ -61,6 +61,7 @@ class NodeWire
      nString remote = "remote";
      long sendDelay = 100;
      bool abort = false;
+     int namelenght;
 
 	   NodeWire()
 	   {
@@ -68,6 +69,7 @@ class NodeWire
          myAddress = nodeName;
          myAddress = "node01";
          cmd = _cmd;
+         namelenght = strlen(nodeName);
      }
 
 	   void resetmessage();

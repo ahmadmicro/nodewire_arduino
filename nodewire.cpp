@@ -79,17 +79,7 @@ void NodeWire::announciate()
     }
   }
 }
-/*
-index < len(nodeName)  buffer!=nodeName
-   no                     no                  no          yes
-   no                     yes                 no          yes
-   yes                    no                  no          yes
-   yes                    yes                 yes         no
 
-     12345
-node -nnnn
-abcd -yyyy
-*/
 void NodeWire::serialEvent() {
   while (Serial.available()) {
     whenlastreceived = millis();
@@ -102,7 +92,7 @@ void NodeWire::serialEvent() {
       buffer[index] = inChar; index++;
     }
 
-    if((index < strlen(nodeName) && strncmp(buffer, nodeName, index)!=0) && (index <3 && strncmp(buffer, "any", index)!=0))
+    if((index < 3 && strncmp(buffer,nodeName,index)!=0) && (index <3 && strncmp(buffer, "any", index)!=0))
       abort = true;
     // if the incoming character is a newline, set a flag
     // so the main loop can do something about it:
