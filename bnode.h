@@ -1,14 +1,32 @@
 #ifndef BNODE_H
 #define BNODE_H
 
-#include <board.h>
+#ifdef ESPCLIENT_H
+  #include <BOARD8266.h>
+#else
+  #include <board.h>
+  #include <EEPROM.h>
+#endif
 #include <node.h>
-#include <EEPROM.h>
+
 class bNode: public Node
 {
   protected:
-    Board board;
+      Board board;
+
   public:
+    virtual void init()
+    {
+       iot.begin();
+       get("name");
+    }
+
+    virtual void init(char* name)
+    {
+        iot.begin(name);
+        get("name");
+    }
+
     virtual bool get(nString port)
     {
       char temp[100]; nString response(temp);
@@ -29,7 +47,7 @@ class bNode: public Node
       {
         int addr = 10;
         int i = 0;
-        char buff[20]; nString dbuff(buff);
+        char buff[21]; nString dbuff(buff);
         memset(buff, '\0', sizeof(buff));
         while(i<20 && buff[i]!= ' ')
         {
@@ -43,7 +61,7 @@ class bNode: public Node
       {
           int addr = 30;
           int i = 0;
-          char buff[20];
+          char buff[21];
           memset(buff, '\0', sizeof(buff));
           while(i<20  && buff[i]!= ' ')
           {
@@ -86,6 +104,9 @@ class bNode: public Node
 
           EEPROM.write(len, ' ');
           response = "id "; response += iot.message->Params[1];
+          #ifdef BOARD8266_H
+             EEPROM.commit();
+          #endif
       }
       else if(port  ==  "name")
       {
@@ -102,7 +123,11 @@ class bNode: public Node
         EEPROM.write(len, ' ');
 
         response = "ThisIs "; response += iot.message->Params[1];
-        delay(10000);//to force a reset
+        #ifdef BOARD8266_H
+           EEPROM.commit();
+           ESP.restart();
+        #endif
+        while(1);//to force a reset
       }
       else if(port == "reset")
       {
@@ -110,7 +135,11 @@ class bNode: public Node
         {
           EEPROM.write(i, 0);
         }
-        delay(10000);//to force a reset
+        #ifdef BOARD8266_H
+           EEPROM.commit();
+           ESP.restart();
+        #endif
+        while(1);//to force a reset
       }
       else
       {

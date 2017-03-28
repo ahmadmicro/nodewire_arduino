@@ -15,7 +15,11 @@ class Node
        #ifdef MODEM_CLIENT_H
           ModemClient iot;
        #else
-          NodeWire iot;
+          #ifdef ESPCLIENT_H
+             ESPClient iot;
+          #else
+             NodeWire iot;
+          #endif
        #endif
      #endif
 
@@ -97,13 +101,11 @@ class Node
      virtual void init(char* name)
      {
          iot.begin(name);
-         get("name");
      }
 
      virtual void init()
      {
 	      iot.begin();
-        get("name");
      }
 
      virtual void loop()
