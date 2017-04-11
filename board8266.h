@@ -1,7 +1,6 @@
 #ifndef BOARD8266_H
 #define BOARD8266_H
 #include <node.h>
-#include <EEPROM.h>
 
 extern "C" {
 #include "user_interface.h"
@@ -24,7 +23,7 @@ class Board
     int responseQueue[5]={-1,-1,-1,-1,-1};
 
     char temp[15];
-    
+
     int popResponse()
     {
       int v = responseQueue[0];
@@ -174,8 +173,6 @@ class Board
     }
     void init(int num_ports=18, nString type="other")
     {
-      EEPROM.begin(1024);
-
       noports=num_ports;
       for(int port=0;port<noports;port++)
       {

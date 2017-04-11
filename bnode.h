@@ -65,7 +65,9 @@ class bNode: public Node
           memset(buff, '\0', sizeof(buff));
           while(i<20  && buff[i]!= ' ')
           {
+            Serial.println("about to");
             char ch = EEPROM.read(addr+i);
+            Serial.println("done");
             if(ch <32 || ch > 126) break;
              buff[i] = ch;
              i++;

@@ -2,6 +2,7 @@
 #define ESPCLIENT_H
 
 #include <nodewire.h>
+#include <EEPROM.h>
 #include <ESP8266WiFi.h>
 #include <nstring.h>
 //https://github.com/adafruit/ESP8266-Arduino
@@ -28,6 +29,8 @@ public:
     myAddress = nodeName;
     myAddress = "node01";
     cmd = _cmd;
+
+
   }
   void begin(char* address)
   {
@@ -64,10 +67,30 @@ public:
 
    void checkSend()
    {
-       if(WiFi.status() != WL_CONNECTED)
-       {
-            ESP.restart();//https://github.com/esp8266/Arduino/blob/master/doc/boards.md#minimal-hardware-setup-for-bootloading-and-usage
-       }
+     if (WiFi.status() != WL_CONNECTED) {
+        Serial.print("Connecting to ");
+        Serial.print(__ssid);
+        Serial.println("...");
+        WiFi.begin(__ssid, __password);
+
+        if (WiFi.waitForConnectResult() != WL_CONNECTED)
+          return;
+        Serial.println("WiFi connected");
+      }
+
+      if (WiFi.status() == WL_CONNECTED) {
+
+        if (!client.connected()) {
+          Serial.println("### Client has disconnected...");
+          client.stop();
+          delay(3000);
+
+          if (client.connect(server, 10001)) {
+            Serial.println("connected");
+            ack = 0;
+          }
+        }
+     }
    }
 
    bool transmit(nString sender, nString response)
@@ -92,7 +115,7 @@ public:
    {
      if(ack==0)
      {
-       if(millis() - ackcount >= 5000 && strlen(sendBuffer)==0)
+       if(millis() - ackcount >= 5000)
        {
          ackcount = millis();
          nString response(sendBuffer);//todo using sendBuffer a bad idea?
@@ -101,6 +124,7 @@ public:
          response+=":";
          response+=myAddress;
          client.print(sendBuffer);
+         Serial.println(sendBuffer);
        }
      }
    }
