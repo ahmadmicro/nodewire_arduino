@@ -66,9 +66,9 @@ class Node
           nString response = "PlainTalk v2.0";
           iot.transmit(iot.message->Sender, response);
        }
-       else if(iot.cmd == "unknown")
+       else if(iot.cmd == "unknown" || iot.cmd == "portvalue")
        {/*ignore unknown */}
-       else
+       else if(iot.message->Address != "any")
        {
            char temp[40]; nString response(temp);//todo what if the command is very long?
            response = "unknown command ";

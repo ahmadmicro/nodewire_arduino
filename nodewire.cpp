@@ -47,7 +47,7 @@ bool NodeWire::messageArrived()
   checkSend();
   if(messageComplete)
   {
-    SplitCommand();
+    SplitCommand(buffer);
     if((myAddress==message->Address || mybroadcastaddress==message->Address) && myAddress != message->Sender)
     {
         if(cmd == "ping")
@@ -82,7 +82,6 @@ void NodeWire::announciate()
 
 void NodeWire::serialEvent() {
   while (Serial.available()) {
-    whenlastreceived = millis();
     // get the new byte:
     char inChar = (char)Serial.read();
     // add it to the inputString:
@@ -98,8 +97,11 @@ void NodeWire::serialEvent() {
       messageComplete = true;
       index = 0;
       abort = false;
+      whenlastreceived = millis();
       return;
     }
+
+    whenlastreceived = millis();
   }
 }
 
@@ -119,9 +121,10 @@ bool NodeWire::transmit(nString sender, nString response) {
 }
 
 void NodeWire::checkSend(){
-  if(strlen(sendBuffer)!=0 && Serial.available()==0 && (millis()-whenlastreceived)>sendDelay)
+  if(strlen(sendBuffer)!=0 && Serial.available()==0 && millis()-whenlastreceived>sendDelay)
   {
     Serial.println(sendBuffer);
+    delay(20);//wait to receive copy of sent message
     serialEvent();//not tested.  receive a copy of the message sent
     if(strncmp(sendBuffer,buffer, strlen(buffer))!=0)
     {
@@ -145,14 +148,14 @@ void NodeWire::resetmessage(){
         message->Params[i] = NULL;
 }
 
-void NodeWire::SplitCommand()
+void NodeWire::SplitCommand(char* thebuff)
 {
   int i;
   message->Address = message->Command = message->Sender = NULL;
   for(i = 0; i<=31; i++)
       message->Params[i] = NULL;
 
-  message->Address = strtok (buffer," ,");
+  message->Address = strtok (thebuff," ,");
   if(message->Address == NULL ) return;
   message->Command = strtok (NULL, " ,");
   if(message->Command == NULL ) return;

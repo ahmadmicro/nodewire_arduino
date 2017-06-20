@@ -85,7 +85,7 @@ class NodeWire
      //candidates for private
      virtual void announciate();
 	   virtual void serialEvent();
-	   void SplitCommand();
+	   void SplitCommand(char*);
      void configureZigbee();
 
 

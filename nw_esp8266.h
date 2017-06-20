@@ -29,14 +29,14 @@ public:
     myAddress = nodeName;
     myAddress = "node01";
     cmd = _cmd;
-
-
   }
+
   void begin(char* address)
   {
      myAddress = address;
      begin();
   }
+
   void begin()
   {
     Serial.begin(38400);
