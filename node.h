@@ -44,6 +44,9 @@ class Node
        }
      }
 
+     virtual void go_to_sleep(){}
+     virtual void wake_up(){}
+
      virtual void handleMessage()
      {
        if(iot.cmd == "set" || iot.cmd == "setportvalue")
@@ -125,8 +128,6 @@ class Node
 
 Node* __thenode;
 
-char instance[20];
-
 void wait(long ms)
 {
    long now = millis();
@@ -150,10 +151,7 @@ void setNode(Node* node)
   __thenode->init();
 }
 
-void setInstance(nString inst)
-{
-  nString theInst = nString(instance);
-  theInst = inst;
-}
+
+
 
 #endif

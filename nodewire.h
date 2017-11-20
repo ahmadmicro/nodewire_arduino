@@ -52,13 +52,15 @@ class NodeWire
      char nodeName[30];
      char _cmd[20];
      nString mybroadcastaddress = "any";
+     bool sleep_mode;
+
    public:
 	   nString myAddress;
 	   int ack = 0;
 	   boolean messageComplete = false;
 	   Message* message;
 	   nString cmd;
-     nString remote = "remote";
+     nString remote = "re";
      long sendDelay = 100;
      bool abort = false;
      int namelenght;
@@ -80,6 +82,9 @@ class NodeWire
      virtual bool transmit(nString sender, nString response);
      bool canSend();
      virtual void checkSend();
+
+     virtual bool sleep_enabled();
+     virtual void enable_sleep();
 
   public:
      //candidates for private

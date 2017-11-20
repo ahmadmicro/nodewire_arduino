@@ -80,6 +80,16 @@ void NodeWire::announciate()
   }
 }
 
+void NodeWire::enable_sleep()
+{
+  sleep_mode = true;
+}
+
+bool NodeWire::sleep_enabled()
+{
+  return sleep_mode;
+}
+
 void NodeWire::serialEvent() {
   while (Serial.available()) {
     // get the new byte:

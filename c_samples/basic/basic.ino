@@ -29,20 +29,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <nodewire.h>
-
-NodeWire iot;
+#define ESPCLIENT_H
+#define ESPClient NodeWire
+#include <bnode.h>
+class myNode: public bNode
+{
+  public:
+    void init()
+    {
+      bNode::init("basic");
+    }
+};
 
 void setup() {
-  iot.begin();
-}
-
-void loop() {
-  if (iot.messageArrived())
-  {
-    nString response(new char[50]);
-    response = "unknown command ";
-    response+=iot.cmd;
-    iot.transmit(iot.message->Sender, response);
-    iot.resetmessage();
-  }
+   setNode(new myNode());
 }

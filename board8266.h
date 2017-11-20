@@ -68,16 +68,26 @@ class Board
       sleeping = true;
       _duration = duration;
     }
+
     void checkinputs(NodeWire* iot)
     {
       checkinputs(iot, true);
     }
-    int freeRam ()
+
+    int freeRam()
     {
       return (int) system_get_free_heap_size();
     }
+
     void checkinputs(NodeWire* iot, bool report)
     {
+      if(iot->sleep_enabled())
+      {
+        __thenode->go_to_sleep();
+        delay(checkInterval);//go into light sleep
+        __thenode->wake_up();
+      }
+
       if(sleeping && ((millis()-timeStarted)>_duration))
       {
         sleeping = false;
@@ -91,9 +101,11 @@ class Board
 
           if(address[loopport]==-1)
                inval = atof(__thenode->read(loopport).theBuf); //read(loopport);
+         else if(address[loopport]==-2)
+              inval = value[loopport]*checkResolution+0.01;
           else if(address[loopport]>=14)
                inval = analogRead(address[loopport])/1023.0;
-           else
+          else
                inval= digitalRead(address[loopport]);
 
           if(abs(inval-value[loopport])>=checkResolution)
@@ -109,7 +121,7 @@ class Board
               {
                 char temp[40];
                 nString resp(temp);
-                resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += inval;//tocheck
+                resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += (address[loopport]<=-1)?inval:__thenode->read(loopport);
                 bool result = iot->transmit(iot->remote, resp);
                 if(result!=true)
                 {
@@ -189,8 +201,8 @@ class Board
                analogWrite(address[port], value[port]);
            else if(outputtype(port)=="Digital")
                digitalWrite(address[port], value[port]);
-           else
-               __thenode->write(port, value[port]); //write(port, value[port]);
+           //else
+            //   __thenode->write(port, value[port]); //write(port, value[port]);
        }
       }
     }
@@ -203,16 +215,34 @@ class Board
         //String response;
         if(direction[portindex]==0)
         {
-          if(value[portindex] != val && value[portindex] != lval)
+          if(value[portindex] != val && value[portindex] != lval || address[portindex]==-2)
           {
             value[portindex] = val;
             if(outputtype(portindex)=="PWM")
+            {
                 analogWrite(address[portindex], lval);
+                Serial.println("PWM");
+            }
             else if(outputtype(portindex)=="Digital")
+            {
                 digitalWrite(address[portindex], val);
+                Serial.println("Digital");
+            }
+            else if(address[portindex]==-1)
+            {
+                __thenode->write(portindex, val);//write(portindex, lval);
+                Serial.println("-1");
+            }
             else
-                __thenode->write(portindex, lval);//write(portindex, lval);
+            {
+                __thenode->write(portindex, v);//write(portindex, lval);
+                Serial.println("-2");
+            }
             if(!__thenode->get(port)) pushResponse(portindex);
+          }
+          else
+          {
+            Serial.println("dodged");
           }
 	        return 0;
 
@@ -224,7 +254,7 @@ class Board
     {
         int portindex = getportindex(port);
         if(portindex!=-1)
-      	    return nString(value[portindex]);
+      	    return nString((address[portindex]!=-2)?value[portindex]:  __thenode->read(portindex));
       	else
       	    return nString("error");
     }
@@ -268,7 +298,7 @@ class Board
     {
         if(address[pin]==A0)
           return nString("Analog");
-        else if (address[pin] ==  -1)
+        else if (address[pin] <=  -1)
             return "Custom";
         else
           return nString("Digital");
@@ -278,7 +308,7 @@ class Board
     {
         if(address[pin]==16)
           return nString("Digital");
-        else if (address[pin] ==  -1)
+        else if (address[pin] <=  -1)
           return "Custom";
         else
           return nString("PWM");

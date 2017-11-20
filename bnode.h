@@ -54,7 +54,7 @@ class bNode: public Node
            buff[i] = EEPROM.read(addr+i);
            i++;
         }
-        if(buff[0]==0) dbuff = "none";
+        if(buff[0]==0 || buff[0]==255) dbuff = "none";
         response = "id "; response += buff;
       }
       else if(port == "name")
@@ -99,8 +99,15 @@ class bNode: public Node
           {
             EEPROM.write(j, 0);
           }
+          #ifdef BOARD8266_H
+             EEPROM.commit();
+          #endif
 
+         #ifdef BOARD8266_H
+          while(i<len && i<19) EEPROM.write(addr+i+1, iot.message->Params[1][i++]);
+          #else
           while(i<len && i<19) EEPROM.write(addr+i, iot.message->Params[1][i++]);
+         #endif
 
           EEPROM.write(len, ' ');
           response = "id "; response += iot.message->Params[1];
@@ -118,6 +125,9 @@ class bNode: public Node
         {
           EEPROM.write(j, 0);
         }
+        #ifdef BOARD8266_H
+           EEPROM.commit();
+        #endif
         while(i<len && i<20) EEPROM.write(addr+i, iot.message->Params[1][i++]);
 
         EEPROM.write(len, ' ');
@@ -131,7 +141,7 @@ class bNode: public Node
       }
       else if(port == "reset")
       {
-        for(int i=8; i<=50;  i++)
+        for(int i=8; i<=511;  i++)
         {
           EEPROM.write(i, 0);
         }
