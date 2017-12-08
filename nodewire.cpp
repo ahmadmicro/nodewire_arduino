@@ -42,7 +42,8 @@ void NodeWire::begin()
 
 bool NodeWire::messageArrived()
 {
-  serialEvent();
+  if(!messageComplete) // if no message waiting for processing, then receive new message
+    serialEvent();
   announciate();
   checkSend();
   if(messageComplete)

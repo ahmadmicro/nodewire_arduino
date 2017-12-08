@@ -6,6 +6,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266HTTPClient.h>
 #include <nstring.h>
 #include <ArduinoOTA.h>
 extern "C" {
@@ -23,12 +24,13 @@ NodeWire* __iot;
 
 void handle_root();
 void handle_config();
+void handle_cmd();
 
 char instance[20]="0p2kzwfnvwu2";
 char ssid[20]="CPE_A6805B_2.4G";
 char password [20] = "5026777022";
 char user [30] = "sadiq.a.ahmad@gmail.com";
-char pwd[20]= "secret";
+char pwd[20]= "secret           ";
 char devname[20] ="nodewire";
 
 class ESPClient: public NodeWire
@@ -58,7 +60,7 @@ public:
     connected = false;
     wait = 0;
 
-    EEPROM.begin(512);
+    //EEPROM.begin(512);
   }
 
   void begin(char* address)
@@ -71,7 +73,7 @@ public:
   {
     Serial.begin(38400);
     debug = &Serial;
-    EEPROM.begin(512);
+    EEPROM.begin(2048);
 
     //writeEM();
     readEM();
@@ -107,31 +109,39 @@ public:
           http_server.handleClient();
           ArduinoOTA.handle();
       }
+      if(millis()-apw>50000) break;
     }
 
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-
-    readEM();
-    startWeb();
-    startOTA();
-
-    int tries = 0;
-
-    while(tries++<5)
+    if(WiFi.status() == WL_CONNECTED)
     {
-      Serial.print("\nconnecting to cp .");
-      Serial.print(".");
-      ESP.wdtFeed();
-      delay(1000);
-      if (client.connect(server, 10001)) {
-        Serial.println("connected");
-        login();
-        break;
+      Serial.println("");
+      Serial.println("WiFi connected");
+      Serial.print("IP address: ");
+      Serial.println(WiFi.localIP());
+
+      readEM();
+
+      startOTA();startWeb();
+
+      WiFi.hostname(devname);
+
+      int tries = 0;
+
+      while(tries++<5)
+      {
+        Serial.print("\nconnecting to cp .");
+        Serial.print(".");
+        ESP.wdtFeed();
+        delay(1000);
+        if (client.connect(server, 10001)) {
+          Serial.println("connected");
+          login();
+          break;
+        }
       }
     }
+
+
   }
 
   void enable_sleep()
@@ -160,22 +170,15 @@ public:
       return true;
   }
 
+
+   long last_tried_connection;
    void checkSend()
    {
      http_server.handleClient();
      ArduinoOTA.handle();
 
-     /*if(programit)
-     {
-       Serial.println("program mode");
-       while(1)
-       {
-         ArduinoOTA.handle();
-         yield();
-       }
-     }*/
-
-     if (!wificonnected()) {
+     if (!wificonnected() && millis()-last_tried_connection>60000) {
+        last_tried_connection = millis();
         Serial.print("Connecting to ");
         Serial.print(ssid);
         Serial.println("...");
@@ -184,6 +187,7 @@ public:
         if (WiFi.waitForConnectResult() != WL_CONNECTED)
           return;
         Serial.println("WiFi connected");
+        startWeb();
       }
 
       if (wificonnected()) {
@@ -281,6 +285,7 @@ public:
    /* OTA */
    void startOTA()
    {
+     ArduinoOTA.setHostname(devname);
      ArduinoOTA.setPassword((const char *)"123");
      ArduinoOTA.onStart([]() {
        Serial.println("Start");
@@ -324,6 +329,16 @@ public:
     client.stop();
   }
 
+  void http_cmd()
+  {
+    if(http_server.argName(0) == "cmd")
+    {
+      http_server.arg(0).toCharArray(buffer, 150);
+      messageComplete = true;
+      Serial.println(buffer);
+    }
+  }
+
   void startWeb()
   {
     if (!MDNS.begin(devname)) {
@@ -340,6 +355,7 @@ public:
 
     http_server.on("/config", handle_config);
     http_server.on("/",  handle_root);
+    http_server.on("/cmd", handle_cmd);
 
     http_server.begin();
   }
@@ -378,7 +394,7 @@ public:
        readEEPROM(user, 300, 30);
        readEEPROM(pwd, 400, 20);
        readEEPROM(devname, 450, 20);
-       //readEEPROM(server, 250, 30);
+       readEEPROM(server, 250, 30);
 
        if(strlen(devname)==0) strcpy(devname, "nodewire");
    }
@@ -411,6 +427,10 @@ void handle_root()
 
 void handle_config() { //Handler
   ((ESPClient*)__iot)->config();
+}
+
+void handle_cmd() { //Handler
+  ((ESPClient*)__iot)->http_cmd();
 }
 
 #endif

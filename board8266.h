@@ -102,7 +102,15 @@ class Board
           if(address[loopport]==-1)
                inval = atof(__thenode->read(loopport).theBuf); //read(loopport);
          else if(address[loopport]==-2)
-              inval = value[loopport]*checkResolution+0.01;
+         {
+            if(value[loopport]!=0)
+            {
+              inval = 1;
+              value[loopport] = 0;
+            }
+            else
+               inval = value[loopport];
+          }
           else if(address[loopport]>=14)
                inval = analogRead(address[loopport])/1023.0;
           else
@@ -121,7 +129,7 @@ class Board
               {
                 char temp[40];
                 nString resp(temp);
-                resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += (address[loopport]<=-1)?inval:__thenode->read(loopport);
+                resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += (address[loopport]>=-1)?inval:__thenode->read(loopport);
                 bool result = iot->transmit(iot->remote, resp);
                 if(result!=true)
                 {
