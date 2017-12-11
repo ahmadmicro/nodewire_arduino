@@ -285,7 +285,7 @@ class Board
 
     nString properties(char* port)
     {
-        nString prop(temp); prop.clearBuffer(15);
+        char temp[15]; nString prop(temp,15); prop.clearBuffer();
         int portindex  = getportindex(port);
         prop = (direction[portindex]==0)?outputtype(portindex): inputtype(portindex);
         prop += (direction[portindex]==1?" IN":" OUT");
@@ -294,7 +294,7 @@ class Board
     nString getports()
     {
         char temp[100]="";//tocheck can't return stack based buffer
-        nString ps(temp);
+        nString ps(temp,100);
 	      for(int i=0;i<noports;i++)
         {
 	          ps+=ports[i]; ps += " ";

@@ -73,7 +73,7 @@ void NodeWire::announciate()
     if(millis() - ackcount >= 5000 && strlen(sendBuffer)==0)
     {
       ackcount = millis();
-      nString response(sendBuffer);//todo using sendBuffer a bad idea?
+      nString response(sendBuffer, SEND_BUF_LEN);//todo using sendBuffer a bad idea?
       response = "cp ThisIs ";
       response+=myAddress;
       //Serial.println(sendBuffer);
@@ -119,7 +119,7 @@ void NodeWire::serialEvent() {
 bool NodeWire::transmit(nString sender, nString response) {
    if(strlen(sendBuffer)==0)
    {
-     nString r(sendBuffer);
+     nString r(sendBuffer, SEND_BUF_LEN);
      if(strlen(sender.theBuf)>1)
         r = sender;
      else

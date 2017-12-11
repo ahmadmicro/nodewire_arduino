@@ -21,12 +21,12 @@ public:
   {
     rec_len = rec_lenght;
     rec_content = new char[rec_lenght];
-    row = rec_content;
+    row.setBuffer(rec_content, rec_lenght);
 
-    fname = fname_buff;
+    fname.setBuffer(fname_buff, sizeof(fname_buff));
     fname = filename;
 
-    fields = f_buff;
+    fields.setBuffer(f_buff, sizeof(f_buff));
     fields = dfields;
     no_fields = fields.split(' ');
 
@@ -114,7 +114,7 @@ public:
 
   nString operator[](nString field)
   {
-    int ind = fields.find(field, no_fields);
+    int ind = fields.find(field);
     if(ind!=-1)
     {
       return row[ind];
@@ -156,8 +156,5 @@ public:
       Serial.println("file failed to open");
     }
   }
-
-
-
 
 };

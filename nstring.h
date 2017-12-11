@@ -29,19 +29,64 @@ class nString{
       char* theBuf = NULL;
       int size = 0;
       int type = n_String;
+      bool should_dispose = false;
 
       // array properties
       int len = 0;
       int capacity = 0;
+      nString** elements = NULL;
 
-      nString(){}
-      nString(char* buff)
+      // object properties
+      nString* keys = NULL;
+
+      nString(){
+        should_dispose = false;
+        theBuf = NULL;
+        size = 0;
+        type = n_String;
+      }
+
+      ~nString()
       {
-        theBuf = buff;
+        //Serial.print("dispose:");
+        //Serial.print(theBuf);
+        if(should_dispose==true && theBuf!=NULL) {
+          free(theBuf);
+          //Serial.println("->freed");
+        }
+        //Serial.println();
+
+        if(elements!=NULL)
+        {
+          for(int i=0;i<len;i++) delete elements[i];
+        }
+      }
+
+      nString(const char* buff)
+      {
+        theBuf = strdup(buff);
         size = strlen(buff)+1;
+        should_dispose = true;
+      }
+
+      nString (const nString& op)
+      {
+          theBuf = op.theBuf;
+          size =  strlen(theBuf)+1;
+          should_dispose = false;
+          type = n_String;
+
+          // todo: handle reference counting and non n_String types
       }
 
       nString(char* buff,  int len)
+      {
+        theBuf = buff;
+        size = len;
+        should_dispose = false;
+      }
+
+      void setBuffer(char* buff,  int len)
       {
         theBuf = buff;
         size = len;
@@ -62,21 +107,21 @@ class nString{
 
       nString operator=(const nString& op)
       {
-        if(theBuf==NULL)
+        if(strlen(op.theBuf)<size)
         {
-          theBuf = op.theBuf;
-          size =  strlen(theBuf)+1;
-        }
-        else if(strlen(op.theBuf)<size)
           strcpy(theBuf, op.theBuf);
-
-        type = n_String;
+          type = n_String;
+        }
+        return *this;
       }
-      nString operator=(char* op)
+
+      nString operator=(const char* op)
       {
         if(theBuf==NULL)
         {
-          theBuf = op;
+          theBuf = strdup(op);
+          size = strlen(op)+1;
+          should_dispose = true;
         }
         else
         {
@@ -84,13 +129,16 @@ class nString{
         }
 
         type = n_String;
+        return *this;
       }
+
       nString operator=(int op)
       {
         if(theBuf==NULL)
           theBuf = "0123456789";
         itoa(op, theBuf, 10);
         type = n_Int;
+        return *this;
       }
       nString operator=(double op)
       {
@@ -98,56 +146,56 @@ class nString{
           theBuf = "0123456789";
         dtostrf(op, 6, 2, theBuf);
         type = n_Float;
+        return *this;
       }
 
       nString operator+=(const nString& op)
       {
         strcat(theBuf, op.theBuf);
         type = n_String;
+        return *this;
       }
       nString operator+=(const char* op)
       {
         strcat(theBuf, op);
         type = n_String;
+        return *this;
       }
       nString operator+=(const int op)
       {
         char temp[10]; itoa(op, temp, 10);
         strcat(theBuf, temp);
-        type = n_Int;
+        type = n_String;
+        return *this;
       }
       nString operator+=(const double op)
       {
         char temp[10]; dtostrf(op, 6, 2, temp);
         strcat(theBuf, temp);
-        type = n_Float;
+        return *this;
       }
 
       nString operator+(const nString& op)
       {
-        nString nw(theBuf);
         strcat(theBuf, op.theBuf);
-        return nw;
+        return *this;
       }
       nString operator+(const char* op)
       {
-        nString nw(theBuf);
         strcat(theBuf, op);
-        return nw;
+        return *this;
       }
       nString operator+(const int op)
       {
-        nString nw(theBuf);
         char temp[10]; itoa(op, temp, 10);
         strcat(theBuf, temp);
-        return nw;
+        return *this;
       }
       nString operator+(const double op)
       {
-        nString nw(theBuf);
         char temp[10]; dtostrf(op, 9, 2, temp);
         strcat(theBuf, temp);
-        return nw;
+        return *this;
       }
 
       bool operator==(nString op)
@@ -184,99 +232,248 @@ class nString{
       }
 
 
-      nString find(nString sub)
+      nString& substring(nString sub)
       {
-          for(int i=0;i<=strlen(theBuf);i++)
+          int n = strlen(sub.theBuf);
+          int i;
+          for(i=0;i<=size;i++)
           {
-            int n = strlen(sub.theBuf);
-            if(strncmp(sub.theBuf, theBuf+i, n)==0) return nString(theBuf+i);
+            if(strncmp(sub.theBuf, theBuf+i, n)==0)
+            {
+              return this->tail(i);
+            }
           }
 
-          return nString(theBuf+strlen(theBuf));
+          return this->tail(strlen(theBuf));
       }
 
-      nString findlast(nString sub)
+      nString& last_substring(nString sub)
       {
         int result;
-        for(int i=0;i<=strlen(theBuf);i++)
+        int n = strlen(sub.theBuf);
+        int i;
+        for(i=0;i<=size;i++)
         {
-          int n = strlen(sub.theBuf);
           if(strncmp(sub.theBuf, theBuf+i, n)==0) result=i;
         }
-        return nString(theBuf+result);
+        return this->tail(result);
       }
 
-      nString index(int i)
+      nString& tail(int i)
       {
-        return nString(theBuf+i);
-      }
-
-      nString operator[](int j)
-      {
-        int i=0; int k=1;
-        if(j==0) return nString(theBuf);
-        while(true)
+        if(type!=n_Array && type!=n_Object)
         {
-          if(theBuf[i]==0)
+          if(capacity==0)
           {
-             if(k==j) return nString(theBuf+i+1);
-             k++;
+            elements = new nString*[1];
+            capacity = 1; len = 1;
           }
-          i++;
+          elements[0] = new nString(theBuf+i, size-i);
+          return *elements[0];
         }
-        return nString(theBuf+i);
+        else
+           return *this;
       }
 
-      int find(nString item, int count)
+      nString& head(int i)
       {
-        for(int i=0;i<count;i++)
+        if(type!=n_Array && type!=n_Object)
+        {
+          if(capacity==0)
+          {
+            elements = new nString*[1];
+            capacity = 1; len = 1;
+          }
+          elements[0] = new nString(theBuf, i);
+          return *elements[0];
+        }
+        else
+           return *this;
+      }
+
+      nString& operator[](int j)
+      {
+        if(j>=0 && j<len)
+          return *elements[j];
+        return *this;
+      }
+
+      void create_array(int Capacity)
+      {
+        delete_elements();
+        capacity = Capacity;
+        elements = new nString*[capacity];
+        type = n_Array;
+      }
+
+      void create_object(nString Keys)
+      {
+        delete_elements();
+        keys = new nString(new char[Keys.size], Keys.size);
+        *keys = Keys;
+        capacity = keys->split(' ');
+        elements = new nString*[capacity];
+
+        int ss = size/capacity;
+        for(int i=0;i<capacity;i++) elements[i]=new nString(theBuf+(ss*i),ss);
+
+        type = n_Object;
+      }
+
+      nString& operator[](nString k)
+      {
+        int i = keys->find(k);
+        if(i!=-1)
+          return *elements[i];
+        return *this;
+      }
+
+      void append(nString item)
+      {
+        if(len<capacity)
+        {
+          if(len==0)
+             elements[len] = new nString(theBuf, item.size);
+          else
+             elements[len] = new nString(elements[len-1]->theBuf+elements[len-1]->size, item.size);
+          *elements[len] = item;
+          len++;
+        }
+      }
+
+      void pop()
+      {
+        if(len!=0)
+        {
+          delete elements[len-1];
+          elements[len-1] = NULL;
+          len--;
+        }
+      }
+
+      int find(nString item)
+      {
+        for(int i=0;i<len;i++)
         {
           if((*this)[i]==item) return i;
         }
         return -1;
       }
 
+      void delete_elements()
+      {
+        if(capacity!=0 && elements!=NULL)
+        {
+          //Serial.print("deleting elements:");
+          //Serial.println(len);
+          for(int i=0;i<len;i++)
+          {
+            delete elements[i];
+            elements[i] = NULL;
+          }
+
+          capacity = 0;
+          len = 0;
+        }
+      }
+
       int split(char c)
       {
-        int j=1;
-        int len = strlen(theBuf);
-        for(int i=0; i<len; i++)
+        delete_elements();
+        len=1;
+        int l = strlen(theBuf);
+        //Serial.print("len:");Serial.println(strlen(theBuf));
+        for(int i=0; i<l; i++)  if(theBuf[i]==c) len++;
+
+        if(capacity<len)
+        {
+          delete elements;
+          elements = new nString*[len];
+          capacity = len;
+        }
+
+        int j = 0;
+        int next_element = 0;
+
+        for(int i=0; i<l; i++)
         {
           if(theBuf[i]==c)
           {
-            theBuf[i] = 0; j++;
+            theBuf[i] = 0;
+            elements[j] = new nString(theBuf + next_element, i - next_element);
+            next_element = i+1;
+            j++;
           }
         }
+        elements[j] = new nString(theBuf + next_element, size - next_element);
         type = n_Array;
-        len = j;
-        return j;
+        return len;
+      }
+
+      void join(char separator)
+      {
+        if(type==n_Array)
+        {
+          int cc = 1;
+          for(int i=0;i<size;i++)
+          {
+            if(theBuf[i]==0) { theBuf[i]= separator; cc++;}
+            if(cc==len) break;
+          }
+          delete_elements();
+          type = n_String;
+        }
       }
 
       int parseCSV()
       {
-        // "Ahmad","Sadiq","Senior Manager"
-        int j=1;
-        int len = strlen(theBuf);
+        delete_elements();
+        len=1;
+        int l = strlen(theBuf);
         bool suspend = false;
 
-        for(int i=0; i<len; i++)
+        for(int i=0; i<l; i++)
         {
             if(theBuf[i]=='\"') suspend = !suspend;
             if(!suspend && theBuf[i]==',')
             {
-              theBuf[i] = 0; j++;
+                len++;
             }
         }
-        type = n_Object;
-        return j;
+
+        suspend = false;
+
+        if(capacity<len)
+        {
+          delete elements;
+          elements = new nString*[len];
+          capacity = len;
+        }
+
+        int j = 0;
+        int next_element = 0;
+
+
+        for(int i=0; i<l; i++)
+        {
+            if(theBuf[i]=='\"') suspend = !suspend;
+            if(!suspend && theBuf[i]==',')
+            {
+              theBuf[i] = 0;
+              elements[j] = new nString(theBuf + next_element, i - next_element);
+              next_element = i+1;
+              j++;
+            }
+        }
+        elements[j] = new nString(theBuf + next_element, size - next_element);
+        type = n_Array;
+        return len;
       }
 
       int parsePT()
       {
         return 0;
       }
-
 };
-
 
 #endif

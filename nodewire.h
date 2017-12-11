@@ -37,6 +37,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  #include "WProgram.h"
 #endif
 
+#define SEND_BUF_LEN 100
+#define REC_BUF_LEN 150
+
 class Message
 {
    public:
@@ -68,7 +71,7 @@ class NodeWire
 	   NodeWire()
 	   {
 		     message = new Message();
-         myAddress = nodeName;
+         myAddress.setBuffer(nodeName, sizeof(nodeName));
          myAddress = "node01";
          cmd = _cmd;
          namelenght = strlen(nodeName);
@@ -95,12 +98,12 @@ class NodeWire
 
 
   protected:
-  	char buffer[150];
+  	char buffer[REC_BUF_LEN];
   	int index;
   	long ackcount = 500000;
     long whenlastreceived;
 
-    char sendBuffer[100];
+    char sendBuffer[SEND_BUF_LEN];
 };
 
 #endif

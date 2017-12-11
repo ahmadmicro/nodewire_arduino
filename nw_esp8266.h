@@ -153,7 +153,7 @@ public:
 
   void login()
   {
-     nString cmd(sendBuffer);
+     nString cmd(sendBuffer, SEND_BUF_LEN);
      cmd = "cp Gateway user=";
      cmd+= user; cmd += " pwd=";
      cmd+= pwd; cmd += " ";
@@ -212,7 +212,7 @@ public:
 
    bool transmit(nString sender, nString response)
    {
-     nString r(sendBuffer);
+     nString r(sendBuffer, SEND_BUF_LEN);
      if(strlen(sender.theBuf)>1)
         r = sender;
      else
@@ -235,7 +235,7 @@ public:
        if(millis() - ackcount >= 5000)
        {
          ackcount = millis();
-         nString response(sendBuffer);//todo using sendBuffer a bad idea?
+         nString response(sendBuffer, SEND_BUF_LEN);//todo using sendBuffer a bad idea?
          response = "cp ThisIs ";
          response+=instance;
          response+=":";
@@ -249,7 +249,7 @@ public:
        if(millis()  - ackcount >= 600000)
        {
          ackcount = millis();
-         nString response(sendBuffer);//todo using sendBuffer a bad idea?
+         nString response(sendBuffer, SEND_BUF_LEN);//todo using sendBuffer a bad idea?
          response = "cp keepalive ";
          response+=instance;
          response+=":";

@@ -107,7 +107,7 @@ class Board
               if(report && iot->ack)
               {
                 char temp[40];
-                nString resp(temp);
+                nString resp(temp, sizeof(temp));
                 resp = "portvalue "; resp += ports[loopport]; resp += " "; resp += (address[loopport]<=-1)?inval:__thenode->read(loopport);//tocheck
                 bool result = iot->transmit(iot->remote, resp);
                 if(result!=true)
@@ -127,7 +127,7 @@ class Board
             {
               //Serial.println("popping");
               char temp[50];
-              nString resp(temp);
+              nString resp(temp, sizeof(temp));
               resp = "portvalue "; resp += ports[lp]; resp += " "; resp += value[lp];
               if(!iot->transmit(iot->remote, resp)) pushResponse(lp);
             }
@@ -257,7 +257,7 @@ class Board
 
     nString properties(char* port)
     {
-        char temp[15]; nString prop(temp); prop.clearBuffer(15);
+        char temp[15]; nString prop(temp, sizeof(temp)); prop.clearBuffer(15);
         int portindex  = getportindex(port);
         prop = (direction[portindex]==0?outputtype(portindex): inputtype(portindex));
         prop += (direction[portindex]==1?" IN":" OUT");
@@ -266,7 +266,7 @@ class Board
     nString getports()
     {
         char temp[100]="";//tocheck can't return stack based buffer
-        nString ps(temp);
+        nString ps(temp,100);
 	      for(int i=0;i<noports;i++)
         {
 	          ps+=ports[i]; ps += " ";

@@ -29,7 +29,7 @@ class bNode: public Node
 
     virtual bool get(nString port)
     {
-      char temp[100]; nString response(temp);
+      char temp[100]; nString response(temp, sizeof(temp));
       if (port == "properties")
       {
         response = "properties "; response += iot.message->Params[1]; response += " "; response += board.properties(iot.message->Params[1]);
@@ -47,7 +47,7 @@ class bNode: public Node
       {
         int addr = 10;
         int i = 0;
-        char buff[21]; nString dbuff(buff);
+        char buff[21]; nString dbuff(buff, sizeof(buff));
         memset(buff, '\0', sizeof(buff));
         while(i<20 && buff[i]!= ' ')
         {
@@ -83,7 +83,7 @@ class bNode: public Node
 
     virtual void set(nString port)
     {
-      char temp[50]; nString response(temp);
+      char temp[50]; nString response(temp, sizeof(temp));
       if (port == "direction")
       {
         board.setdirection(iot.message->Params[1], iot.message->Params[2]);
