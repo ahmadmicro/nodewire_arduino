@@ -145,7 +145,7 @@ Here is an example that remakes the led example but this time, the port takes on
 
     #define LED LED_BUILTIN
 
-    Node node;
+    Node<nString> node;
     SerialLink link;
 
     bool ledon = false;
