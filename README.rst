@@ -12,12 +12,12 @@ and functions that will consume the value provided when any of the input ports a
 .. code-block:: c++
 
     Node<int> node; // store input port values as int
-    node.inputs = "led";
-    node.outputs = "button";
+    node.inputs = "led"; // list of input portnames separated by space
+    node.outputs = "button"; // list of output portnames separated by space
 
     node.on_read("button",
        []() -> nString {
-          return digitalRead(MAINS);
+          return digitalRead(BUTTON);
        }
     );
 
@@ -207,6 +207,72 @@ and when we send:
 it blinks continously in one second intervals, 500ms on and 500ms off.
 
 The timer function is used to schedule periodic events. You can define up to three timers: 0, 1 and 3, numbered in order of creation.
+
+Multiple port example
+----------------
+
+.. code-block:: c++
+
+  #include <nnode.h>
+  #include <nseriallink.h>
+
+  #define MAINS 1
+  #define IGNITION LED_BUILTIN
+  #define BUZZER 3
+
+  Node<int> node;
+  SerialLink link;
+
+  void setup() {
+    Serial.begin(38400);
+    link.setSerial(&Serial);
+
+    node.outputs = "mains gen";
+    node.inputs = "ignition buzzer relay";
+
+    node.init("sco");
+    node.setLink(&link);
+
+    node.on("ignition",
+      [](nString val, nString sender) {
+         digitalWrite(IGNITION,(int)val);
+       }
+    );
+
+    node.on("buzzer",
+      [](nString val, nString sender) {
+         digitalWrite(BUZZER,(int)val);
+       }
+    );
+
+    node.on_timer(1000,
+      []() {
+         Serial.println("tick");
+       }
+    );
+
+    node.on_timer(500,
+      []() {
+         Serial.println("tock");
+       }
+    );
+
+    node.on_read("mains",
+      []() -> nString {
+          return digitalRead(MAINS);
+       }
+    );
+
+    pinMode(IGNITION, OUTPUT);
+    node.startTimer(0);
+    node.startTimer(1);
+  }
+
+  void loop() {
+    node.run();
+  }
+
+
 
 nString
 ========
