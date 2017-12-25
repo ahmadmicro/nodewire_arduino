@@ -1,9 +1,0 @@
-i have profiled the software and this is how it uses memory:
-total static memory used: 758 bytes, of which:
-    nodewire class: 332
-    node class 143
-    nString class 80
-    Serial class 200
-    un accounted 3
-dynamic memory used: 162
-making a total of 917 bytes

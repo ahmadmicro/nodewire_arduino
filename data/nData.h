@@ -1,4 +1,4 @@
-#include <nstring.h>
+#include <nstring2.h>
 #include <FS.h>
 
 class nData
@@ -143,6 +143,38 @@ public:
           else
             f.readBytes(rec_content, rec_len);
           g.write((const uint8_t*)rec_content, rec_len);
+          ll++;
+       }
+       f.close();
+       g.close();
+
+       SPIFFS.remove((char*)fname);
+       SPIFFS.rename("/tmp", (char*)fname);
+    }
+    else
+    {
+      Serial.println("file failed to open");
+    }
+  }
+
+  void delete_row(nString record)
+  {
+    File f = SPIFFS.open((char*)fname, "a+"); // for reeading and appending
+    File g = SPIFFS.open("/tmp", "a+");
+
+    int ll = 0;
+    int size = f.size()/rec_len;
+    if(f && g)
+    {
+       while(ll<size)
+       {
+          f.seek(ll*rec_len, SeekSet);
+          g.seek(ll*rec_len, SeekSet);
+          if(ll!=loc)
+          {
+            f.readBytes(rec_content, rec_len);
+            g.write((const uint8_t*)rec_content, rec_len);
+          }
           ll++;
        }
        f.close();
