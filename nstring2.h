@@ -1,6 +1,8 @@
 #ifndef NSTRING_H
 #define NSTRING_H
 
+#include <ndebug.h>
+
 #if defined (__STM32F1__)
 #include <itoa.h>
 #include <avr/dtostrf.h>

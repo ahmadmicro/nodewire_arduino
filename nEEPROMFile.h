@@ -129,9 +129,10 @@ public:
         int pos = (int)entry[2];
         int cap = (int)entry[3];
         readEEPROM(content.theBuf, pos, lenght);
+        return true;
       }
     }
-    return true;
+    return false;
   }
 
   bool create_file(nString filename, int capacity)
