@@ -1,6 +1,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+
 enum Debug_Levels {
   APPLICATION,
   FRAMEWORK,
@@ -14,7 +15,7 @@ class Debug
 public:
   Debug_Levels level = APPLICATION;
 
-  void setDebug(Stream* serial)
+  void setOutput(Stream* serial)
   {
       stream = serial;
   }
@@ -26,12 +27,13 @@ public:
 
   void log2(char* msg)
   {
-    if(stream!=NULL && level<=FRAMEWORK) stream->println(msg);
+    if(stream!=NULL && (level==FRAMEWORK||level==LOW_LEVEL)) stream->println(msg);
   }
+
 
   void log3(char* msg)
   {
-    if(stream!=NULL && level<=LOW_LEVEL) stream->println(msg);
+    if(stream!=NULL && level==LOW_LEVEL) stream->println(msg);
   }
 
 };

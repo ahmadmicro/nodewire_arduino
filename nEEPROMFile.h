@@ -81,6 +81,7 @@ public:
     if(no==-1) return -1;
     for(int fileno=0;fileno<no;fileno++)
     {
+      entry.collapse();
       readEEPROM(directory,8+fileno*24, 24);
       entry.split(' ');
       if(entry[0]==filename)
@@ -102,7 +103,7 @@ public:
     if(no==-1) return "";
     for(int fileno=0;fileno<no;fileno++)
     {
-      entry.type = n_String;
+      entry.collapse();
       entry.clearBuffer();
       readEEPROM(directory,8+fileno*24, 24);
       //entry.split(' ');
@@ -121,6 +122,7 @@ public:
     if(no==-1) return false;
     for(int fileno=0;fileno<no;fileno++)
     {
+      entry.collapse();
       readEEPROM(directory,8+fileno*24, 24);
       entry.split(' ');
       if(entry[0]==filename)
@@ -144,7 +146,7 @@ public:
     int pos = 8+24*no;
     for(int fileno=0;fileno<no;fileno++)
     {
-      entry.type = n_String;
+      entry.collapse();
       entry.clearBuffer();
       readEEPROM(directory,8+fileno*24, 24);
       entry.split(' ');
@@ -152,7 +154,7 @@ public:
       {
         if(entry[0]=="EMPTY")
         {
-          entry.type = n_String;
+          entry.collapse();
           entry.clearBuffer();
           entry = filename;
           entry+=  " ";
@@ -169,6 +171,7 @@ public:
         {
           return false;
         }
+        return false;
       }
       else
       {
@@ -187,7 +190,8 @@ public:
     int pos = 8+24*no;
     for(int fileno=0;fileno<no;fileno++)
     {
-      entry.type = n_String;
+      //entry.type = n_String;
+      entry.collapse();
       entry.clearBuffer();
       readEEPROM(directory,8+fileno*24, 24);
       entry.split(' ');
@@ -195,7 +199,7 @@ public:
       {
         if(entry[0]=="EMPTY")
         {
-          entry.type = n_String;
+          entry.collapse();
           entry.clearBuffer();
           entry = filename;
           entry+=  " ";
@@ -215,7 +219,7 @@ public:
             int pos = (int) entry[2];
             int cap = (int) entry[3];
 
-            entry.type = n_String;
+            entry.collapse();
             entry.clearBuffer();
             entry = filename;
             entry+=  " ";
@@ -229,6 +233,8 @@ public:
             writeEEPROM(content.theBuf, pos, content.size);
             return true;
         }
+        debug.log2("failed to save");
+        return false;
       }
       else
       {

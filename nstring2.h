@@ -25,6 +25,12 @@
 #define n_Float 4
 #define n_String 5
 
+/*
+Todo:
+1. operator == and operator != for Array and object
+2. a predefined blank nString to be returned for null values, e.g. when index not found
+
+*/
 class nString{
   private:
   public:
@@ -378,7 +384,7 @@ class nString{
       }
       bool operator==(char* op)
       {
-        if(strcmp(theBuf, op)==0) return true; else return false;
+        if(strcmp(theBuf, op)==0 && type!=n_Array && type!=n_Object) return true; else return false;
       }
 
       bool operator!=(nString op)
@@ -388,6 +394,7 @@ class nString{
 
       bool operator!=(char* op)
       {
+        if(type==n_Object || type==n_Array) return true;
         if(strcmp(theBuf, op)==0) return false; else return true;
       }
 
@@ -412,7 +419,7 @@ class nString{
       }
 
 
-      nString& substring(nString sub)
+      int index(nString sub)
       {
           int n = strlen(sub.theBuf);
           int i;
@@ -420,23 +427,23 @@ class nString{
           {
             if(strncmp(sub.theBuf, theBuf+i, n)==0)
             {
-              return this->tail(i);
+              return i;
             }
           }
 
-          return this->tail(strlen(theBuf));
+          return -1;
       }
 
-      nString& last_substring(nString sub)
+      int last_index(nString sub)
       {
-        int result;
+        int result=-1;
         int n = strlen(sub.theBuf);
-        int i;
+        int i=-1;
         for(i=0;i<=size;i++)
         {
           if(strncmp(sub.theBuf, theBuf+i, n)==0) result=i;
         }
-        return this->tail(result);
+        return result;
       }
 
       nString& tail(int i)
@@ -445,14 +452,17 @@ class nString{
         {
           if(capacity==0)
           {
-            elements = new nString*[1];
-            capacity = 1; len = 1;
+            elements = new nString*[2];
+            capacity = 2; len = 2;
           }
-          elements[0] = new nString(theBuf+i, size-i);
-          return *elements[0];
+          elements[0] = new nString(theBuf, i);
+          elements[1] = new nString(theBuf+i+1, size-i);
+          theBuf[i] = '\0';
+          type = n_Array;
+          return *elements[1];
         }
         else
-           return *this;
+           return *elements[1];;
       }
 
       nString& head(int i)
@@ -461,14 +471,17 @@ class nString{
         {
           if(capacity==0)
           {
-            elements = new nString*[1];
-            capacity = 1; len = 1;
+            elements = new nString*[2];
+            capacity = 2; len = 2;
           }
           elements[0] = new nString(theBuf, i);
+          elements[1] = new nString(theBuf+i+1, size-i);
+          theBuf[i] = '\0';
+          type = n_Array;
           return *elements[0];
         }
         else
-           return *this;
+           return *elements[0];;
       }
 
       nString& operator[](int j)
@@ -664,7 +677,8 @@ class nString{
           for(int i=0;i<len;i++)
           {
             int l = strlen(elements[i]->theBuf);
-            elements[i]->theBuf[strlen(elements[i]->theBuf)] = separator;
+            if(i!=len-1)
+              elements[i]->theBuf[strlen(elements[i]->theBuf)] = separator;
 
             for(int j=l+1;j<elements[i]->size;j++) elements[i]->theBuf[j] = 0;
 
