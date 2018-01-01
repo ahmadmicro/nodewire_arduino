@@ -4,6 +4,7 @@
 #include <nstring2.h>
 #include <nlink.h>
 #include <nEEPROMFile.h>
+#include <nport.h>
 
 #ifdef ESP8266
   extern "C" {
@@ -43,7 +44,9 @@ private:
   readHandler* read_handlers = NULL;
   timerHandler* timer_handlers = NULL;
 
-  PVT* portvalues;
+  PVT* portvalues=NULL;
+  Port<PVT>* port=NULL;
+  void* remote = NULL;
 
   int no_timers = 0;
   long* timer_intervals = NULL;
@@ -86,6 +89,7 @@ public:
       free(timer_values);
       free(timer_enabled);
     }
+    if(portvalues!=NULL) free(portvalues);
   }
 
   void readConfig()
@@ -132,7 +136,7 @@ public:
     read_handlers = new readHandler[outputs.len];
     portvalues = new PVT[inputs.len];
 
-    for(int i=0;i<inputs.len;i++) { portvalues[i] = *(new PVT()); portvalues[i]=1;}
+    for(int i=0;i<inputs.len;i++) { portvalues[i] = *(new PVT()); portvalues[i]=0;}
 
     for(int i=0;i<outputs.len;i++)
     {
@@ -164,7 +168,7 @@ public:
     read_handlers = new readHandler[outputs.len];
     portvalues = new PVT[inputs.len];
 
-    for(int i=0;i<inputs.len;i++){ portvalues[i] = *(new PVT()); portvalues[i]=1;}
+    for(int i=0;i<inputs.len;i++){ portvalues[i] = *(new PVT()); portvalues[i]=0;}
 
     for(int i=0;i<outputs.len;i++)
     {
@@ -212,9 +216,36 @@ public:
     if(index!=-1) read_handlers[index] = handler;
   }
 
-  void on_portvalue()
+  Port<PVT>& operator[](const char* p)
   {
+    if(outputs.find(p)!=-1)
+    {
+      if(port==NULL)
+      {
+        port = new Port<PVT>(&address, p, &_link->response);
+      }
+      else
+        port->portname = p;
+      return *port;
+    }
+    //todo handle when port not found
+  }
 
+  template <class NVT>
+  Remote<NVT>& get_node(char* nodename)
+  {
+    if(remote!=NULL) {
+      if(((Remote<NVT>*)remote)->address!=nodename)
+      {
+        delete remote; remote = NULL;
+      }
+    }
+    if(remote==NULL)
+    {
+      remote = new Remote<NVT>(address.theBuf, &_link->response);
+      *((Remote<NVT>*)remote)->sender = nodename;
+    }
+    return *((Remote<NVT>*)remote);
   }
 
   void startTimer(int t)

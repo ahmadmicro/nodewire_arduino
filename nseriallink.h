@@ -18,7 +18,7 @@ public:
     sendDelay = random(30, 100);
   }
 
-  void setSerial(Stream* serial)
+  void begin(Stream* serial)
   {
       _serial = serial;
   }

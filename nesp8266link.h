@@ -15,6 +15,8 @@ private:
   WiFiClient client;
   long whenlastreceived;
   long last_ping;
+  long last_ack;
+  long connection_timeout = 20000;
   int sendDelay;
   bool connected;
   bool auth_done = false;
@@ -45,7 +47,8 @@ private:
   /* OTA */
   void startOTA()
   {
-    ArduinoOTA.setPassword((const char *)"123");
+    ArduinoOTA.setHostname(configuration["dev"].theBuf);
+    ArduinoOTA.setPassword((const char *)configuration["pwd"].theBuf);
     ArduinoOTA.onStart([]() {
       Serial.println("Start");
     });
@@ -86,6 +89,8 @@ private:
    wait = 0;
    http_server.send(200, "text/plain", "success");
    client.stop();
+   delay(2000);
+   ESP.reset();
  }
 
 
@@ -156,7 +161,7 @@ private:
           configuration["ssid"] = "ssid";
           configuration["pass"] = "pass";
           configuration["user"]="user";
-          configuration["pwd"]="pwd";
+          configuration["pwd"]="12345678";
           configuration["dev"]="nodewire";
 
           configuration.dump_json(out_buff);
@@ -209,11 +214,12 @@ public:
             apmode = true;
             debug.log2("access point");
             debug.log2(configuration["dev"].theBuf);
-            WiFi.softAP(configuration["dev"].theBuf, "12345678");
+            WiFi.softAP(configuration["dev"].theBuf, configuration["pwd"].theBuf);
             //debug.log2(WiFi.softAPIP());
             //debug.log2(WiFi.status());
-            startWeb();
+
             startOTA();
+            startWeb();
           }
           http_server.handleClient();
           ArduinoOTA.handle();
@@ -224,8 +230,8 @@ public:
     debug.log2("IP address: ");
     //debug.log2(WiFi.localIP());
 
-    startWeb();
     startOTA();
+    startWeb();
 
     int tries = 0;
 
@@ -233,8 +239,13 @@ public:
     {
       debug.log2("\nconnecting to cp .");
       debug.log2(".");
-      ESP.wdtFeed();
-      delay(1000);
+      long del = millis();
+      while(millis()-del<1000)
+      {
+        ESP.wdtFeed();
+        http_server.handleClient();
+        ArduinoOTA.handle();
+      }
       if (client.connect(configuration["server"].theBuf, 10001)) {
         debug.log2("connected");
         login();
@@ -259,8 +270,10 @@ public:
               }
               debug.log2(in_buff);
               messageComplete = true;
+              if(connection_timeout<500000) connection_timeout+=5000;
               index = 0;
               last_ping = millis();
+              last_ack = last_ping;
               return;
           }
         }
@@ -287,28 +300,42 @@ public:
       }
 
       if (wificonnected()) {
+        if(client.connected() && strlen(out_buff)!=0)
+        {
+          client.println(out_buff);
+          debug.log2(out_buff);
+          memset(out_buff, '\0', sizeof(out_buff));
+        }
 
-        if (!client.connected() && last_ping>660000) {
+        if(client.connected() && (millis()  - last_ping >= connection_timeout))
+        {
+           last_ping = millis();
+           response = "cp keepalive ";
+           response+=configuration["instance"];
+           response+=":";
+           response+=*nodename;
+           client.println(out_buff);
+           Serial.println(out_buff);
+           memset(out_buff, '\0', sizeof(out_buff));
+        }
+
+        if (!client.connected() || (millis()-last_ack)> (connection_timeout+5000))
+        {
+          client.stop();
           Serial.println("### Client has disconnected...");
-          //ESP.reset();
+
+          connection_timeout = 20000;
+          last_ack = millis();
 
           if (client.connect(configuration["server"].theBuf, 10001)) {
             Serial.println("connected");
             login();
-            //announcing = true;
           }
           else
           {
             Serial.println('restarting ...');
             ESP.reset();
           }
-        }
-
-        if(client.connected() && strlen(out_buff)!=0)
-        {
-          client.println(out_buff);
-          debug.log2(out_buff);
-          memset(out_buff, '\0', sizeof(out_buff));
         }
      }
   }

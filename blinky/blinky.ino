@@ -10,7 +10,7 @@ bool ledon = false;
 
 void setup() {
   Serial.begin(38400);
-  link.setSerial(&Serial);
+  link.begin(&Serial);
 
   node.inputs = "led:List|on,off,blink";
   node.init_with_props("node01");

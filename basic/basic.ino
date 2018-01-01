@@ -8,7 +8,7 @@ SerialLink link;
 
 void setup() {
   Serial.begin(38400);
-  link.setSerial(&Serial);
+  link.begin(&Serial);
 
   node.inputs = "led:Indicator";
   node.init_with_props("node01");
