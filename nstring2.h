@@ -53,6 +53,10 @@ class nString{
         should_dispose = false;
         theBuf = NULL;
         size = 0;
+        capacity = 0;
+        len = 0;
+        elements = NULL;
+        keys = NULL;
         type = n_String;
       }
 
@@ -73,9 +77,13 @@ class nString{
         }
         if(keys!=NULL)
         {
-          delete[] keys->theBuf;
-          delete keys;
-          keys = NULL;
+            if(keys->theBuf!=NULL)
+            {
+              delete[] keys->theBuf;
+              keys->theBuf = NULL;
+            }
+           delete keys;
+           keys = NULL;
         }
       }
 
@@ -116,8 +124,11 @@ class nString{
         if(op.type==n_String || op.type==n_Float || op.type==n_Int)
         {
             //strcpy(theBuf, op.theBuf);
-            if(op.size<=size)
+            if(op.size<size)
+            {
               memcpy(theBuf,  op.theBuf, op.size);
+              memset(theBuf+op.size, '\0' ,size-op.size);
+            }
             else if(!should_dispose)
                 memcpy(theBuf,  op.theBuf, size-1);
             else
@@ -128,14 +139,17 @@ class nString{
                 theBuf = temp;
                 size = op.size;
             }
-            theBuf[size-1]=0;
+            theBuf[size-1]=0; //todo this is the problem?
             type = op.type;
         }
         else if(op.elements!=NULL)
         {
            delete_elements();
-            if(op.size<=size)
+            if(op.size<size)
+            {
               memcpy(theBuf, op.theBuf, op.size);
+              memset(theBuf+op.size, '\0' ,size-op.size);
+            }
             else
               memcpy(theBuf, op.theBuf, size);
             elements = new nString*[op.capacity];
@@ -302,7 +316,7 @@ class nString{
 
       nString& operator+=(const nString& op)
       {
-        if(size>=(strlen(theBuf)+strlen(op.theBuf)))
+        if(size>(strlen(theBuf)+strlen(op.theBuf)))
         {
            strcat(theBuf, op.theBuf);
            type = op.type;
@@ -321,7 +335,7 @@ class nString{
       }
       nString operator+=(const char* op)
       {
-        if(size>=strlen(theBuf)+strlen(op))
+        if(size>strlen(theBuf)+strlen(op))
         {
           strcat(theBuf, op);
         }
@@ -444,6 +458,17 @@ class nString{
           if(strncmp(sub.theBuf, theBuf+i, n)==0) result=i;
         }
         return result;
+      }
+
+      void trim()
+      {
+        int pos = 0;
+        while(isspace(theBuf[pos]) && pos<size) pos++;
+        if(pos!=0)
+            *this = (theBuf+pos);
+        int end = strlen(theBuf);
+        while(isspace(theBuf[end]) && end!=pos) end--;
+        theBuf[end] = '\0';
       }
 
       nString& tail(int i)
@@ -619,9 +644,13 @@ class nString{
         }
         if(keys!=NULL)
         {
-          delete[] keys->theBuf;
-          delete keys;
-          keys = NULL;
+            if(keys->theBuf!=NULL)
+            {
+              delete[] keys->theBuf;
+              keys->theBuf = NULL;
+            }
+            delete keys;
+            keys = NULL;
         }
       }
 
@@ -771,7 +800,7 @@ class nString{
               theBuf[i] = '\0';
               len++;
               stop = i;
-              looking = false;
+              //looking = false;
               separator = sep;
             }
             else if(theBuf[i]=='[')
@@ -878,6 +907,7 @@ class nString{
 
       void parse_as_json() // converts n_string to n_Object
       {
+        trim();
         if(theBuf[0]=='\"')
         {
           //string
@@ -900,10 +930,13 @@ class nString{
           //array or object
           removeends();
           splitPT(',');
-
-          keys = new nString();
+          if(keys==NULL)
+            keys = new nString();
+          else
+            keys->collapse();
           for(int i = 0;i<len;i++)
           {
+            elements[i]->trim();
             elements[i]->splitPT(':');
             elements[i][0].parse_as_json();
             if(keys->theBuf==NULL)
@@ -916,6 +949,7 @@ class nString{
           keys->split(' ');
           for(int i = 0;i<len;i++)
           {
+            //(*elements[i])[1].trim();
             *elements[i] = (*elements[i])[1].theBuf;
             elements[i]->collapse();
             elements[i]->parse_as_json();

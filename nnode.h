@@ -16,8 +16,10 @@
   }
 #else
   #if defined (__STM32F1__)
+    int _freeRam (){ return 0;}
   #else
     #if  defined (STM32_HIGH_DENSITY)
+        int _freeRam (){ return 0;}
     #else
       int _freeRam ()
       {
@@ -284,9 +286,21 @@ public:
         {
           _link->response = _link->message["sender"] + " memory " + _freeRam() + " " + address;
         }
-        else if(_link->message["port"]=="props")
+        else if(_link->message["port"]=="properties" && with_props)
         {
-
+            int port = inputs.find("name="+_link->message["value"]);
+            if(port!=-1)
+            {
+                 _link->response = _link->message["sender"] + " properties " +  _link->message["value"] + " " + inputs[port]["prop"] + " " + address;
+            }
+            else
+            {
+                int port = outputs.find("name="+_link->message["value"]);
+                if(port!=-1)
+                {
+                     _link->response = _link->message["sender"] + " properties " +  _link->message["value"] + " " + outputs[port]["prop"] + " " + address;
+                }
+            }
         }
         else if(_link->message["port"]=="ports")
         {

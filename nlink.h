@@ -49,7 +49,7 @@ class Link
         receive();
       else
       {
-        int len = message.split(' ');
+        int len = message.splitPT(' ');
         if(len==5)
           message.convert_object("address command port value sender");
         else if(len==4)

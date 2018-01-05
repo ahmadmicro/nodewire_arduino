@@ -63,7 +63,7 @@ public:
           f.seek(loc*rec_len, SeekSet);
           int n = f.readBytes(rec_content, rec_len);
           f.close();
-          row.parseCSV();
+          row.splitCSV();
           return n;
       }
       else
@@ -112,7 +112,7 @@ public:
     return false;
   }
 
-  nString operator[](nString field)
+  nString& operator[](nString field)
   {
     int ind = fields.find(field);
     if(ind!=-1)
