@@ -828,16 +828,17 @@ class nString{
         elements = new nString*[len];
         capacity = len;
         int el = 1;
-        int prev=0;
-        for(int i=0;i<=stop;i++)
-        {
-          if(theBuf[i]=='\0')
-          {
-            elements[el-1] = new nString(theBuf + prev, i - prev);
-            prev = i+1;
-            el++;
-          }
-        }
+       int prev=0;
+       for(int i=0;i<=stop;i++)
+       {
+           if(theBuf[i]=='\0')
+           {
+               elements[el-1] = new nString(theBuf + prev, i + 1 - prev);
+               prev = i+1;
+               i++;
+               el++;
+           }
+       }
         elements[len-1] = new nString(theBuf + prev, size - prev);
         type = n_Array;
         return len;
