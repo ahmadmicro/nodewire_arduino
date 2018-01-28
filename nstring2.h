@@ -96,22 +96,6 @@ class nString{
 
       nString (const nString& op)
       {
-         // buffer shared with op
-          /*theBuf = op.theBuf;
-          size =  op.size;
-          should_dispose = false;
-          type = op.type;
-          if(op.elements!=NULL)
-          {
-            elements = op.elements;
-            capacity = op.capacity;
-            len = op.len;
-            if(op.keys!=NULL)
-            {
-              keys = op.keys;
-            }
-          }*/
-
           theBuf = new char[op.size];
           size = op.size;
           type = n_String;
@@ -460,16 +444,16 @@ class nString{
         return result;
       }
 
-      void trim()
-      {
+     void trim()
+     {
         int pos = 0;
         while(isspace(theBuf[pos]) && pos<size) pos++;
         if(pos!=0)
             *this = (theBuf+pos);
-        int end = strlen(theBuf);
+        int end = strlen(theBuf)-1;
         while(isspace(theBuf[end]) && end!=pos) end--;
-        theBuf[end] = '\0';
-      }
+        theBuf[end+1] = '\0';
+     }
 
       nString& tail(int i)
       {
@@ -554,12 +538,17 @@ class nString{
           //keys->theBuf[dKeys.size-1] = 0;
           len = keys->split(' ');
           if(len>capacity) {
+              debug.log2("object can't fit into existing array!");
             //Serial.println("E DON HAPPEN!");
             //resize(len);
           }
           //len = capacity;
 
           type = n_Object;
+        }
+        else
+        {
+            debug.log2("only arrays can be converted to object!");
         }
       }
 
@@ -772,12 +761,18 @@ class nString{
             if(!suspend && theBuf[i]==',')
             {
               theBuf[i] = 0;
-              elements[j] = new nString(theBuf + next_element, i - next_element);
+              elements[j] = new nString(theBuf + next_element, i - next_element + 1);
+              elements[j]->trim();
+              if(elements[j]->theBuf[0]=='\"')
+                elements[j]->removeends();
               next_element = i+1;
               j++;
             }
         }
         elements[j] = new nString(theBuf + next_element, size - next_element);
+        elements[j]->trim();
+        if(elements[j]->theBuf[0]=='\"')
+          elements[j]->removeends();
         type = n_Array;
         return len;
       }
@@ -842,6 +837,19 @@ class nString{
         elements[len-1] = new nString(theBuf + prev, size - prev);
         type = n_Array;
         return len;
+      }
+
+      void to_csv()
+      {
+          for(int i = 0; i<len-1;i++)
+          {
+              int start = strlen(elements[i]->theBuf);
+              for(int j=start;j<elements[i]->size;j++)
+                elements[i]->theBuf[j] = ' ';
+              elements[i]->theBuf[elements[i]->size-1] = ',';
+          }
+          delete_elements();
+          type = n_String;
       }
 
       int dump_json(char* buff) //converts n_Object to string

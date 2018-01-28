@@ -17,14 +17,18 @@ private:
   long last_ping;
   long last_ack;
   long connection_timeout = 20000;
+  long last_attempt;
   int sendDelay;
   bool connected;
   bool auth_done = false;
   int wait;
 
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
+
+public:
   nString configuration;
 
+private:
   void login()
   {
      response = "cp Gateway user=";
@@ -81,7 +85,6 @@ private:
      else if(http_server.argName(i) == "pwd") http_server.arg(i).toCharArray(configuration["pwd"].theBuf, configuration["pwd"].size);
      else if(http_server.argName(i) == "devname") http_server.arg(i).toCharArray(configuration["dev"].theBuf, configuration["dev"].size);
      else if(http_server.argName(i) == "server") http_server.arg(i).toCharArray(configuration["server"].theBuf, configuration["server"].size);
-     //else if(http_server.argName(i) == "program") programit = true;
    }
 
    writeEM();
@@ -191,6 +194,16 @@ public:
     configuration.setBuffer(_config, sizeof(_config));
   }
 
+  int connect_state()
+  {
+      if(client.connected())
+        return 2;
+      else if(wificonnected())
+        return 1;
+      else
+        return 0;
+  }
+
   void begin()
   {
     readEM();
@@ -220,6 +233,7 @@ public:
 
             startOTA();
             startWeb();
+            return;
           }
           http_server.handleClient();
           ArduinoOTA.handle();
@@ -259,7 +273,7 @@ public:
     while (client.available()) {
         char c = client.read();
 
-        if (c == '\n' || index >= sizeof(in_buff)-1) {
+        if (c == '\n' || index >= BUFF_SIZE-1) {
           if(index !=0)
           {
               int pos = message.index(configuration["instance"]);
@@ -288,15 +302,16 @@ public:
      http_server.handleClient();
      ArduinoOTA.handle();
 
-     if (!wificonnected()) {
+     if (!wificonnected() &&  millis()-last_attempt>10000) {
+        last_attempt = millis();
         Serial.print("Connecting to ");
-        Serial.print(configuration["ssid"].theBuf);
-        Serial.println("...");
+        //Serial.print(configuration["ssid"].theBuf);
+        //Serial.println("...");
         WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
 
-        if (WiFi.waitForConnectResult() != WL_CONNECTED)
-          return;
-        Serial.println("WiFi connected");
+        //if (WiFi.waitForConnectResult() != WL_CONNECTED)
+        //  return;
+        //Serial.println("WiFi connected");
       }
 
       if (wificonnected()) {
@@ -312,8 +327,8 @@ public:
            last_ping = millis();
            response = "cp keepalive ";
            response+=configuration["instance"];
-           response+=":";
-           response+=*nodename;
+           //response+=":";
+           //response+=*nodename;
            client.println(out_buff);
            Serial.println(out_buff);
            memset(out_buff, '\0', sizeof(out_buff));

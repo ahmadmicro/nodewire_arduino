@@ -230,7 +230,19 @@ public:
         port->portname = p;
       return *port;
     }
+    else if(inputs.find(p)!=-1)
+    {
+      if(port==NULL)
+      {
+        port = new Port<PVT>(&address, p, &_link->response);
+      }
+      else
+        port->portname = p;
+      return *port;
+    }
     //todo handle when port not found
+    // and port read for input port
+    //add callback for updating PVs
   }
 
   template <class NVT>
@@ -324,8 +336,9 @@ public:
           int port = outputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
           if(port!=-1 && read_handlers[port]!=NULL)
           {
-            nString val = read_handlers[port]();
-            _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
+             nString val = read_handlers[port]();
+             if(strlen(_link->response.theBuf)==0)
+                _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
           }
           else
           {
@@ -360,10 +373,10 @@ public:
           int port = inputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
           if(port!=-1)
           {
-            if(set_handlers[port]!=NULL)
-              set_handlers[port](_link->message["value"], _link->message["sender"]);
             portvalues[port] = (PVT) _link->message["value"];
             _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + _link->message["value"] + " " + address;
+            if(set_handlers[port]!=NULL)
+              set_handlers[port](_link->message["value"], _link->message["sender"]);
           }
         }
       }
@@ -393,7 +406,7 @@ public:
     {
       if(timer_enabled[t] && millis()-timer_values[t]>=timer_intervals[t])
       {
-        timer_values[t] = millis();
+        timer_values[t]+=timer_intervals[t];
         timer_handlers[t]();
       }
     }

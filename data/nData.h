@@ -31,7 +31,15 @@ public:
     no_fields = fields.split(' ');
 
     if(SPIFFS.begin())
-      Serial.println("File system initialized");
+      debug.log2("File system initialized");
+  }
+
+  int no_records()
+  {
+      File f = SPIFFS.open((char*)fname, "a+");
+      int len = f.size()/rec_len;;
+      f.close();
+      return len;
   }
 
   void truncate()
@@ -42,6 +50,7 @@ public:
   void add(nString record)
   {
       File f = SPIFFS.open((char*)fname, "a+"); // for reeading and appending
+      row.collapse();
       row = record;
       if(f)
       {
@@ -50,7 +59,7 @@ public:
       }
       else
       {
-        Serial.println("file failed to open");
+        debug.log2("file failed to open");
       }
   }
 
@@ -60,15 +69,16 @@ public:
       loc = location;
       if(f)
       {
-          f.seek(loc*rec_len, SeekSet);
+          if(!f.seek(loc*rec_len, SeekSet)) return 0;
           int n = f.readBytes(rec_content, rec_len);
           f.close();
+          row.collapse();
           row.splitCSV();
           return n;
       }
       else
       {
-        Serial.println("file failed to open");
+        debug.log2("file failed to open");
       }
 
       return 0;
@@ -83,7 +93,9 @@ public:
 
     while(read(dloc++))
     {
-      if((*this)[dfield]==dval)
+      nString vv = (*this)[dfield];
+      vv.trim();
+      if(vv==dval)
       {
          loc = dloc-1;
          return true;
@@ -112,6 +124,27 @@ public:
     return false;
   }
 
+   bool findlast(nString query)
+   {
+       query.split('=');
+       nString dfield = query[0];
+       nString dval = query[1];
+       int dloc = no_records()-1;
+
+       while(read(dloc--))
+       {
+         nString vv = (*this)[dfield];
+         vv.trim();
+         if(vv==dval)
+         {
+            loc = dloc+1;
+            return true;
+         }
+       }
+
+       return false;
+   }
+
   nString& operator[](nString field)
   {
     int ind = fields.find(field);
@@ -121,8 +154,21 @@ public:
     }
     else
     {
-      Serial.println("Field not found");
+      debug.log2(field.theBuf);
+      debug.log2("Field not found");
     }
+  }
+
+  nString& to_object()
+  {
+      if(row.type==n_Array)
+      {
+         fields.join(' ');
+         row.convert_object(fields);
+         fields.split(' ');
+      }
+
+      return row;
   }
 
   void update(nString record)
@@ -148,12 +194,14 @@ public:
        f.close();
        g.close();
 
+       //row.splitCSV();
+
        SPIFFS.remove((char*)fname);
        SPIFFS.rename("/tmp", (char*)fname);
     }
     else
     {
-      Serial.println("file failed to open");
+      debug.log2("file failed to open");
     }
   }
 
@@ -185,7 +233,7 @@ public:
     }
     else
     {
-      Serial.println("file failed to open");
+      debug.log2("file failed to open");
     }
   }
 

@@ -41,7 +41,7 @@ You create the link object and associate it with the node during setup:
     Serial.begin(38400);
     link.setSerial(&Serial);
 
-    node.setLink(link);
+    node.begin(link);
 
 And here is the complete code:
 
@@ -61,7 +61,7 @@ And here is the complete code:
 
       node.inputs = "led";
       node.init("node01");
-      node.setLink(&link);
+      node.begin(&link);
 
       node.on("led",
          [](nString val, nString sender) {
@@ -156,7 +156,7 @@ Here is an example that remakes the led example but this time, the port takes on
 
       node.inputs = "led:List|on,off,blink";
       node.init_with_props("blinky");
-      node.setLink(&link);
+      node.begin(&link);
 
       node.on("led",
          [](nString val, nString sender) {
@@ -231,7 +231,7 @@ Multiple port example
     node.inputs = "ignition buzzer relay";
 
     node.init("sco");
-    node.setLink(&link);
+    node.begin(&link);
 
     node.on("ignition",
       [](nString val, nString sender) {

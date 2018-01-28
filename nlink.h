@@ -10,7 +10,11 @@
     #if  defined (STM32_HIGH_DENSITY)
        #define BUFF_SIZE 100
     #else
-       #define BUFF_SIZE 80
+       #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+         #define BUFF_SIZE 230
+       #else
+         #define BUFF_SIZE 80
+       #endif
     #endif
   #endif
 #endif
@@ -49,6 +53,7 @@ class Link
         receive();
       else
       {
+        if(nodename==NULL) return true;
         int len = message.splitPT(' ');
         if(len==5)
           message.convert_object("address command port value sender");
