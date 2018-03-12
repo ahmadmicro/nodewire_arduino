@@ -47,6 +47,11 @@ class Link
       memset(in_buff, '\0', BUFF_SIZE);
     }
 
+    bool message_received()
+    {
+        return messageComplete;
+    }
+
     bool messageArrived()
     {
       if(!messageComplete) // if no message waiting for processing, then receive new message

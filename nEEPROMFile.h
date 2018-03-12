@@ -38,6 +38,16 @@ public:
     #endif
   }
 
+  void format()
+  {
+      int i  = 0;
+      while(i<2048)
+      {
+        EEPROM.write(i, 0);
+        i++;
+      }
+  }
+
   void create_FS(int no_files)
   {
     /*

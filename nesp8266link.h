@@ -26,26 +26,27 @@ private:
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
 
 public:
-  nString configuration;
+    nString configuration;
+
+    bool wificonnected()
+    {
+      if(WiFi.status() != WL_CONNECTED)// && connected==false)
+        return false;
+      else
+        return true;
+    }
+
 
 private:
   void login()
   {
      response = "cp Gateway user=";
-     response+= configuration["user"]; response += " pwd=";
-     response+= configuration["pwd"]; response += " ";
+     response += configuration["user"]; response += " pwd=";
+     response += configuration["pwd"]; response += " ";
      response += configuration["instance"];
      client.println(response.theBuf);
      debug.log2(response.theBuf);
      memset(out_buff, '\0', BUFF_SIZE);
-  }
-
-  bool wificonnected()
-  {
-    if(WiFi.status() != WL_CONNECTED && connected==false)
-      return false;
-    else
-      return true;
   }
 
   /* OTA */
@@ -91,8 +92,10 @@ private:
    auth_done = false;
    wait = 0;
    http_server.send(200, "text/plain", "success");
+   WiFi.softAP(configuration["dev"].theBuf, "12345678");//configuration["pwd"].theBuf);
    client.stop();
    delay(2000);
+   Serial.println('restarting ...');
    ESP.reset();
  }
 
@@ -165,7 +168,7 @@ private:
           configuration["pass"] = "pass";
           configuration["user"]="user";
           configuration["pwd"]="12345678";
-          configuration["dev"]="nodewire";
+          configuration["dev"]="mydevice";
 
           configuration.dump_json(out_buff);
           debug.log2(out_buff);
@@ -207,6 +210,8 @@ public:
   void begin()
   {
     readEM();
+    //WiFi.mode(WIFI_STA);
+    WiFi.hostname(configuration["dev"].theBuf);
     WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
 
     long wt = millis();
@@ -225,11 +230,11 @@ public:
           if(apmode!=true)
           {
             apmode = true;
+            WiFi.softAP(configuration["dev"].theBuf, "12345678");// configuration["pwd"].theBuf);
             debug.log2("access point");
             debug.log2(configuration["dev"].theBuf);
-            WiFi.softAP(configuration["dev"].theBuf, configuration["pwd"].theBuf);
-            //debug.log2(WiFi.softAPIP());
-            //debug.log2(WiFi.status());
+            Serial.println(WiFi.softAPIP());
+            Serial.println(WiFi.status());
 
             startOTA();
             startWeb();
@@ -270,7 +275,7 @@ public:
 
   void receive()
   {
-    while (client.available()) {
+    while (messageComplete==false && client.available()) {
         char c = client.read();
 
         if (c == '\n' || index >= BUFF_SIZE-1) {
@@ -305,8 +310,8 @@ public:
      if (!wificonnected() &&  millis()-last_attempt>10000) {
         last_attempt = millis();
         Serial.print("Connecting to ");
-        //Serial.print(configuration["ssid"].theBuf);
-        //Serial.println("...");
+        Serial.print(configuration["ssid"].theBuf);
+        Serial.println("...");
         WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
 
         //if (WiFi.waitForConnectResult() != WL_CONNECTED)
@@ -327,8 +332,6 @@ public:
            last_ping = millis();
            response = "cp keepalive ";
            response+=configuration["instance"];
-           //response+=":";
-           //response+=*nodename;
            client.println(out_buff);
            Serial.println(out_buff);
            memset(out_buff, '\0', sizeof(out_buff));
@@ -346,11 +349,11 @@ public:
             Serial.println("connected");
             login();
           }
-          else
+          /*else
           {
             Serial.println('restarting ...');
             ESP.reset();
-          }
+          }*/
         }
      }
   }

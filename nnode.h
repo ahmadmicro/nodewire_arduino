@@ -5,6 +5,7 @@
 #include <nlink.h>
 #include <nEEPROMFile.h>
 #include <nport.h>
+#include <tr1/functional>
 
 #ifdef ESP8266
   extern "C" {
@@ -49,6 +50,8 @@ private:
   PVT* portvalues=NULL;
   Port<PVT>* port=NULL;
   void* remote = NULL;
+  nString remote_address;
+  std::tr1::function<void(nString port, nString value)> remote_handle;
 
   int no_timers = 0;
   long* timer_intervals = NULL;
@@ -62,7 +65,6 @@ private:
   long last_announced;
 
   bool with_props = false;
-
 
 public:
   nString inputs;
@@ -92,6 +94,7 @@ public:
       free(timer_enabled);
     }
     if(portvalues!=NULL) free(portvalues);
+    if(remote!=NULL) free(remote);
   }
 
   void readConfig()
@@ -224,7 +227,7 @@ public:
     {
       if(port==NULL)
       {
-        port = new Port<PVT>(&address, p, &_link->response);
+        port = new Port<PVT>(&address, p, &_link->response, &portvalues[outputs.find(p)]);
       }
       else
         port->portname = p;
@@ -234,15 +237,17 @@ public:
     {
       if(port==NULL)
       {
-        port = new Port<PVT>(&address, p, &_link->response);
+        port = new Port<PVT>(&address, p, &_link->response, &portvalues[inputs.find(p)]);
       }
       else
         port->portname = p;
       return *port;
     }
-    //todo handle when port not found
-    // and port read for input port
-    //add callback for updating PVs
+    else
+    {
+        debug.log2("port deos not exist! Halting...");
+        while(true);
+    }
   }
 
   template <class NVT>
@@ -256,8 +261,13 @@ public:
     }
     if(remote==NULL)
     {
-      remote = new Remote<NVT>(address.theBuf, &_link->response);
-      *((Remote<NVT>*)remote)->sender = nodename;
+      remote = new Remote<NVT>(nodename, &_link->response);
+      *((Remote<NVT>*)remote)->sender = address;
+      remote_address = nodename;
+      remote_handle = std::tr1::bind(&Remote<NVT>::handle, (Remote<NVT>*)remote, std::tr1::placeholders::_1, std::tr1::placeholders::_2);
+
+      _link->response = "cp subscribe "; _link->response += nodename; _link->response += " portvalue ";  _link->response = _link->response + address;
+      _link->checkSend();
     }
     return *((Remote<NVT>*)remote);
   }
@@ -337,8 +347,8 @@ public:
           if(port!=-1 && read_handlers[port]!=NULL)
           {
              nString val = read_handlers[port]();
-             if(strlen(_link->response.theBuf)==0)
-                _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
+             if(strlen(_link->response.theBuf)!=0) _link->checkSend();
+             _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
           }
           else
           {
@@ -374,11 +384,17 @@ public:
           if(port!=-1)
           {
             portvalues[port] = (PVT) _link->message["value"];
-            _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + _link->message["value"] + " " + address;
             if(set_handlers[port]!=NULL)
               set_handlers[port](_link->message["value"], _link->message["sender"]);
+            if(strlen(_link->response.theBuf)!=0) _link->checkSend();
+            _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
           }
         }
+      }
+      else if(_link->message["command"]=="portvalue" && remote != NULL && remote_address==_link->message["sender"])
+      {
+          debug.log("handing remote event");
+          remote_handle(_link->message["port"], _link->message["value"]);
       }
       else if(_link->message["command"]=="ping")
       {
