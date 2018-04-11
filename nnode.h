@@ -5,9 +5,9 @@
 #include <nlink.h>
 #include <nEEPROMFile.h>
 #include <nport.h>
-#include <tr1/functional>
 
 #ifdef ESP8266
+  #include <tr1/functional>
   extern "C" {
     #include "user_interface.h"
   }
@@ -51,7 +51,9 @@ private:
   Port<PVT>* port=NULL;
   void* remote = NULL;
   nString remote_address;
+  #ifdef ESP8266
   std::tr1::function<void(nString port, nString value)> remote_handle;
+  #endif
 
   int no_timers = 0;
   long* timer_intervals = NULL;
@@ -250,6 +252,7 @@ public:
     }
   }
 
+#ifdef ESP8266
   template <class NVT>
   Remote<NVT>& get_node(char* nodename)
   {
@@ -271,6 +274,7 @@ public:
     }
     return *((Remote<NVT>*)remote);
   }
+ #endif
 
   void startTimer(int t)
   {
@@ -394,7 +398,9 @@ public:
       else if(_link->message["command"]=="portvalue" && remote != NULL && remote_address==_link->message["sender"])
       {
           debug.log("handing remote event");
+          #ifdef ESP8266
           remote_handle(_link->message["port"], _link->message["value"]);
+          #endif
       }
       else if(_link->message["command"]=="ping")
       {

@@ -2,10 +2,10 @@
 #define LINK_H
 
 #ifdef ESP8266
-  #define BUFF_SIZE 230
+  #define BUFF_SIZE 1024
 #else
   #if defined (__STM32F1__)
-    #define BUFF_SIZE 100
+    #define BUFF_SIZE 10s0
   #else
     #if  defined (STM32_HIGH_DENSITY)
        #define BUFF_SIZE 100
