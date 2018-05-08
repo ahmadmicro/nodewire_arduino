@@ -182,7 +182,13 @@ private:
      EEPROM_File file;
      configuration.dump_json(out_buff);
      debug.log2(out_buff);
-     file.save("gw.cfg", response);
+     if(!file.save("gw.cfg", response))
+     {
+         debug.log("Re-creating File EEMPROM System...");
+         file.create_FS(4);
+         if(file.save("gw.cfg", response))
+            debug.log("success");
+     }
      memset(out_buff, '\0', BUFF_SIZE);
    }
 
