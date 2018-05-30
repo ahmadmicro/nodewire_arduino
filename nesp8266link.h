@@ -153,7 +153,8 @@ private:
            configuration["pwd"]=response["pwd"];
            configuration["dev"]=response["dev"];
            debug.log2("opened gw.cfg=>");
-           configuration.println(&Serial);
+            if(debug.level==LOW_LEVEL)
+              configuration.println(&Serial);
            response.collapse();
            memset(out_buff, '\0', BUFF_SIZE);
        }
@@ -313,7 +314,7 @@ public:
      http_server.handleClient();
      ArduinoOTA.handle();
 
-     if (!wificonnected() &&  millis()-last_attempt>10000) {
+     if (!wificonnected() &&  millis()-last_attempt>60000) {
         last_attempt = millis();
         Serial.print("Connecting to ");
         Serial.print(configuration["ssid"].theBuf);

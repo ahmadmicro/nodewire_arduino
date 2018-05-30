@@ -1,14 +1,14 @@
 #include <nnode.h>
-#include <nseriallink.h>
+#include <nesp8266link.h>
 
 #define LED LED_BUILTIN
 
 Node<int> node;
-SerialLink link;
+Esp8266Link link;
 
 void setup() {
   Serial.begin(38400);
-  link.begin(&Serial);
+  link.begin();
 
   node.inputs = "led";
   node.init("node01");

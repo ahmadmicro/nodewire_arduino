@@ -113,10 +113,11 @@ public:
     }
     else
     {
+       id = "node";
        file.create_file("nw.cfg", 30);
        cont.create_array(2);
        cont.append(address);
-       cont.append("none");
+       cont.append(id);
        cont.join(' ');
        file.save("nw.cfg", cont);
     }
