@@ -104,7 +104,7 @@ void process(int client_index) {
         {
             addresses[client_index] = message["sender"];
             nString addr = message["sender"];
-            buffer = message["sender"] + " ack cp\n";
+            buffer = message["sender"] + " ack cp";
             serverClients[client_index].println(in_buff);
             //buffer = addr + " get ports cp\n";
             //serverClients[client_index].println(in_buff);

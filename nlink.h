@@ -72,7 +72,10 @@ class Link
           return false;
         }
         if(message["address"]==*nodename || message["address"]=="any")
+        {
+           message["sender"].trim();
           return true;
+        }
         else
         {
             resetmessage();

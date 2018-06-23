@@ -289,7 +289,7 @@ public:
           if(index !=0)
           {
               int pos = message.index(configuration["instance"]);
-              if(pos!=-1)
+              if(pos==0)
               {
                 pos+=strlen(configuration["instance"].theBuf);
                 message = message.tail(pos);
@@ -313,13 +313,15 @@ public:
   void checkSend() {
      http_server.handleClient();
      ArduinoOTA.handle();
-
-     if (!wificonnected() &&  millis()-last_attempt>60000) {
+     if (!wificonnected() &&  millis()-last_attempt>120000) {
         last_attempt = millis();
-        Serial.print("Connecting to ");
-        Serial.print(configuration["ssid"].theBuf);
-        Serial.println("...");
-        WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
+        if(Serial.println(wifi_softap_get_station_num())==0)
+        {
+            Serial.print("Connecting to ");
+            Serial.print(configuration["ssid"].theBuf);
+            Serial.println("...");
+            WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
+        }
 
         //if (WiFi.waitForConnectResult() != WL_CONNECTED)
         //  return;
@@ -347,7 +349,7 @@ public:
         if (!client.connected() || (millis()-last_ack)> (connection_timeout+5000))
         {
           client.stop();
-          Serial.println("### Client has disconnected...");
+          //Serial.println("### Client has disconnected...");
 
           connection_timeout = 20000;
           last_ack = millis();
