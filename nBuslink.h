@@ -27,7 +27,7 @@ public:
   {
     while (_serial->available() && !messageComplete) {
       char inChar = (char)_serial->read();
-      _serial.print(inChar);
+      _serial->print(inChar);
       whenlastreceived = millis();
 
       if (inChar == '\n' || index >= (sizeof(in_buff)-2)) {

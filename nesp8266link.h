@@ -315,7 +315,7 @@ public:
      ArduinoOTA.handle();
      if (!wificonnected() &&  millis()-last_attempt>120000) {
         last_attempt = millis();
-        if(Serial.println(wifi_softap_get_station_num())==0)
+        //if(wifi_softap_get_station_num()==0)
         {
             Serial.print("Connecting to ");
             Serial.print(configuration["ssid"].theBuf);

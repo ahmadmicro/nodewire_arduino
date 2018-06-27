@@ -39,7 +39,8 @@ class nString{
       int size = 0;
       int type = n_String;
       bool should_dispose = false;
-      static int precision;
+      int precision = 6;
+
 
       // array properties
       int len = 0;
