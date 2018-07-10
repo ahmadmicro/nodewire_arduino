@@ -22,6 +22,7 @@ private:
   bool connected;
   bool auth_done = false;
   int wait;
+  bool station_mode = false;
 
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
 
@@ -78,6 +79,12 @@ private:
   /* WIFI configuration */
  void config()
  {
+   http_server.sendHeader("Access-Control-Allow-Origin", "*");
+   http_server.send(200, "text/plain", "success");
+   http_server.client().flush();
+   http_server.client().stop();
+   http_server.stop();
+
    for (int i = 0; i < http_server.args(); i++) {
      if(http_server.argName(i) == "instance") http_server.arg(i).toCharArray(configuration["instance"].theBuf, configuration["instance"].size);
      else if(http_server.argName(i) == "ssid") http_server.arg(i).toCharArray(configuration["ssid"].theBuf, configuration["ssid"].size);
@@ -91,11 +98,9 @@ private:
    writeEM();
    auth_done = false;
    wait = 0;
-   http_server.send(200, "text/plain", "success");
-   WiFi.softAP(configuration["dev"].theBuf, "12345678");//configuration["pwd"].theBuf);
-   client.stop();
-   delay(2000);
+
    Serial.println('restarting ...');
+   client.stop();
    ESP.reset();
  }
 
@@ -124,6 +129,7 @@ private:
         []() {
            IPAddress ip = WiFi.localIP();
            String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
+           http_server.sendHeader("Access-Control-Allow-Origin", "*");
            String s = "<html>Hello from NodeWire gateway at <b>";
            s += ipStr;
            s += "</b></html>";
@@ -166,10 +172,10 @@ private:
           configuration["server"] = "dashboard.nodewire.org";
           configuration["instance"]="instance";
           configuration["ssid"] = "ssid";
-          configuration["pass"] = "pass";
+          configuration["pass"] = "12345678";
           configuration["user"]="user";
           configuration["pwd"]="12345678";
-          configuration["dev"]="mydevice";
+          configuration["dev"]="mygw";
 
           configuration.dump_json(out_buff);
           debug.log2(out_buff);
@@ -243,7 +249,8 @@ public:
             Serial.println(WiFi.softAPIP());
             Serial.println(WiFi.status());
 
-            startOTA();
+            if(station_mode)
+                startOTA();
             startWeb();
             return;
           }
@@ -251,12 +258,14 @@ public:
           ArduinoOTA.handle();
       }
     }
+    station_mode = true;
+    WiFi.softAPdisconnect(true);
     debug.log2("");
     debug.log2("WiFi connected");
     debug.log2("IP address: ");
     //debug.log2(WiFi.localIP());
-
-    startOTA();
+    if(station_mode)
+        startOTA();
     startWeb();
 
     int tries = 0;
@@ -296,7 +305,7 @@ public:
               }
               debug.log2(in_buff);
               messageComplete = true;
-              if(connection_timeout<500000) connection_timeout+=5000;
+              if(connection_timeout<500000) connection_timeout+=50000;
               index = 0;
               last_ping = millis();
               last_ack = last_ping;
@@ -312,18 +321,25 @@ public:
 
   void checkSend() {
      http_server.handleClient();
-     ArduinoOTA.handle();
-     if (!wificonnected() &&  millis()-last_attempt>120000) {
-        last_attempt = millis();
+     if(station_mode)
+        ArduinoOTA.handle();
+     if (!wificonnected() &&  (station_mode || millis()-last_attempt>120000)) {
         //if(wifi_softap_get_station_num()==0)
+        if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode  && millis()-last_attempt>120000)
         {
+            WiFi.softAP(configuration["dev"].theBuf, "12345678");
+            station_mode = false;
+        }
+
+        if(millis()-last_attempt>5000 && WiFi.status()!=WL_IDLE_STATUS)
+        {
+            last_attempt = millis();
             Serial.print("Connecting to ");
             Serial.print(configuration["ssid"].theBuf);
             Serial.println("...");
             WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
         }
 
-        //if (WiFi.waitForConnectResult() != WL_CONNECTED)
         //  return;
         //Serial.println("WiFi connected");
       }
@@ -346,7 +362,7 @@ public:
            memset(out_buff, '\0', sizeof(out_buff));
         }
 
-        if (!client.connected() || (millis()-last_ack)> (connection_timeout+5000))
+        if (!client.connected() || (millis()-last_ack)> (connection_timeout+20000))
         {
           client.stop();
           //Serial.println("### Client has disconnected...");
@@ -357,6 +373,8 @@ public:
           if (client.connect(configuration["server"].theBuf, 10001)) {
             Serial.println("connected");
             login();
+            station_mode = true;
+            WiFi.softAPdisconnect(true);
           }
           /*else
           {
