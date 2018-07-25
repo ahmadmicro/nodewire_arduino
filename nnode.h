@@ -113,7 +113,7 @@ public:
     }
     else
     {
-       id = "node";
+       id = "none";
        file.create_file("nw.cfg", 30);
        cont.create_array(2);
        cont.append(address);
@@ -382,6 +382,16 @@ public:
           _link->resetmessage();
           saveConfig();
           readConfig();
+        }
+        else if(_link->message["port"]=="reset")
+        {
+            EEPROM_File file;
+            file.create_FS(4);
+            readConfig();
+        }
+        else if(_link->message["port"]=="restart")
+        {
+
         }
         else
         {

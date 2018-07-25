@@ -169,7 +169,7 @@ private:
           debug.log2("creating gw.cfg");
           file.create_file("gw.cfg", BUFF_SIZE);
           configuration.create_object("server instance ssid pass user pwd dev");
-          configuration["server"] = "dashboard.nodewire.org";
+          configuration["server"] = "cloud.nodewire.org";
           configuration["instance"]="instance";
           configuration["ssid"] = "ssid";
           configuration["pass"] = "12345678";
