@@ -6,6 +6,7 @@
 #include <nEEPROMFile.h>
 #include <nport.h>
 
+
 #ifdef ESP8266
   #include <tr1/functional>
   extern "C" {
@@ -22,12 +23,20 @@
     #if  defined (STM32_HIGH_DENSITY)
         int _freeRam (){ return 0;}
     #else
-      int _freeRam ()
-      {
-        extern int __heap_start, *__brkval;
-        int v;
-        return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-      }
+      #if defined ESP32
+          #include <tr1/functional>
+          int _freeRam()
+          {
+            return (int) system_get_free_heap_size();
+          }
+      #else
+          int _freeRam ()
+          {
+            extern int __heap_start, *__brkval;
+            int v;
+            return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+         }
+      #endif
     #endif
   #endif
 #endif
@@ -51,7 +60,7 @@ private:
   Port<PVT>* port=NULL;
   void* remote = NULL;
   nString remote_address;
-  #ifdef ESP8266
+  #if defined(ESP8266) || defined(ESP32)
   std::tr1::function<void(nString port, nString value)> remote_handle;
   #endif
 
@@ -73,6 +82,8 @@ public:
   nString outputs;
   nString address;
   nString id;
+
+  setHandler fn_portvalue = NULL;
 
   Node()
   {
@@ -248,12 +259,13 @@ public:
     }
     else
     {
-        debug.log2("port deos not exist! Halting...");
+        debug.log2("port does not exist! Halting...");
+        debug.log2(p);
         while(true);
     }
   }
 
-#ifdef ESP8266
+#if  defined(ESP8266) || defined(ESP32)
   template <class NVT>
   Remote<NVT>& get_node(char* nodename)
   {
@@ -349,18 +361,27 @@ public:
         else
         {
           int port = outputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
-          if(port!=-1 && read_handlers[port]!=NULL)
+          if(port!=-1)
           {
-             nString val = read_handlers[port]();
-             if(strlen(_link->response.theBuf)!=0) _link->checkSend();
-             _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
+             if(read_handlers[port]!=NULL)
+             {
+                 nString val = read_handlers[port]();
+                 if(strlen(_link->response.theBuf)!=0) _link->checkSend();
+                 _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
+             }
+             else
+             {
+                 if(strlen(_link->response.theBuf)!=0) _link->checkSend();
+                _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
+            }
           }
           else
           {
             int port = inputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
             if(port!=-1)
             {
-              _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
+                if(strlen(_link->response.theBuf)!=0) _link->checkSend();
+                _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
             }
           }
         }
@@ -383,6 +404,18 @@ public:
           saveConfig();
           readConfig();
         }
+        else if(_link->message["port"]=="script")
+        {
+            EEPROM_File file;
+            if(file.filelenght("script")==-1) file.create_file("script", 2000);
+            _link->message["value"].removeends();
+            for(int i=0;i<_link->message["value"].size;i++)
+               if(_link->message["value"].theBuf[i]=='\'') _link->message["value"].theBuf[i]='\"';
+            file.save("script", _link->message["value"]);
+            #ifdef ESP32
+             ESP.restart();
+            #endif
+        }
         else if(_link->message["port"]=="reset")
         {
             EEPROM_File file;
@@ -403,13 +436,14 @@ public:
               set_handlers[port](_link->message["value"], _link->message["sender"]);
             if(strlen(_link->response.theBuf)!=0) _link->checkSend();
             _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
+            if(fn_portvalue!=NULL) fn_portvalue(_link->message["port"], _link->message["value"]);
           }
         }
       }
       else if(_link->message["command"]=="portvalue" && remote != NULL && remote_address==_link->message["sender"])
       {
           debug.log("handing remote event");
-          #ifdef ESP8266
+          #if  defined(ESP8266) || defined(ESP32)
           remote_handle(_link->message["port"], _link->message["value"]);
           #endif
       }

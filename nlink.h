@@ -3,20 +3,16 @@
 
 #ifdef ESP8266
   #define BUFF_SIZE 1024
+#elif defined ESP32
+  #define BUFF_SIZE 1024
+#elif defined (__STM32F1__)
+    #define BUFF_SIZE 100
+#elif  defined (STM32_HIGH_DENSITY)
+    #define BUFF_SIZE 100
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+    #define BUFF_SIZE 230
 #else
-  #if defined (__STM32F1__)
-    #define BUFF_SIZE 10s0
-  #else
-    #if  defined (STM32_HIGH_DENSITY)
-       #define BUFF_SIZE 100
-    #else
-       #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-         #define BUFF_SIZE 230
-       #else
-         #define BUFF_SIZE 80
-       #endif
-    #endif
-  #endif
+    #define BUFF_SIZE 40
 #endif
 
 class Link

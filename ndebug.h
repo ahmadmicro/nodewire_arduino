@@ -20,18 +20,18 @@ public:
       stream = serial;
   }
 
-  void log(char* msg)
+  void log(const char* msg)
   {
     if(stream!=NULL) stream->println(msg);
   }
 
-  void log2(char* msg)
+  void log2(const char* msg)
   {
     if(stream!=NULL && (level==FRAMEWORK||level==LOW_LEVEL)) stream->println(msg);
   }
 
 
-  void log3(char* msg)
+  void log3(const char* msg)
   {
     if(stream!=NULL && level==LOW_LEVEL) stream->println(msg);
   }

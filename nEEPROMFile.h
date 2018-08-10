@@ -27,6 +27,8 @@ private:
      }
      #ifdef ESP8266
       EEPROM.commit();
+     #elif defined ESP32
+      EEPROM.commit();
      #endif
   }
 
@@ -35,6 +37,8 @@ public:
   {
     #ifdef ESP8266
       EEPROM.begin(2048);
+    #elif defined ESP32
+       EEPROM.begin(4096);
     #endif
   }
 
