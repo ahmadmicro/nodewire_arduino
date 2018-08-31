@@ -299,7 +299,7 @@ public:
     while (messageComplete==false && client.available()) {
         char c = client.read();
         if(!suspended && c=='\"') suspended = true;
-        else if(suspended && c=='\"') suspended = false; 
+        else if(suspended && c=='\"') suspended = false;
         if (!suspended && c == '\n' || index >= BUFF_SIZE-1) {
           if(index !=0)
           {
@@ -333,6 +333,7 @@ public:
         //if(wifi_softap_get_station_num()==0)
         if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode  && millis()-last_attempt>120000)
         {
+            Serial.println("AP mode");
             WiFi.softAP(configuration["dev"].theBuf, "12345678");
             station_mode = false;
         }

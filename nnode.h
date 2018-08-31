@@ -6,6 +6,7 @@
 #include <nEEPROMFile.h>
 #include <nport.h>
 
+#define NO_EEPROM_FILES 5
 
 #ifdef ESP8266
   #include <tr1/functional>
@@ -16,29 +17,23 @@
   {
     return (int) system_get_free_heap_size();
   }
+#elif defined (__STM32F1__)
+  int _freeRam (){ return 0;}
+#elif defined (STM32_HIGH_DENSITY)
+  int _freeRam (){ return 0;}
+#elif defined ESP32
+  #include <tr1/functional>
+  int _freeRam()
+  {
+    return (int) system_get_free_heap_size();
+  }
 #else
-  #if defined (__STM32F1__)
-    int _freeRam (){ return 0;}
-  #else
-    #if  defined (STM32_HIGH_DENSITY)
-        int _freeRam (){ return 0;}
-    #else
-      #if defined ESP32
-          #include <tr1/functional>
-          int _freeRam()
-          {
-            return (int) system_get_free_heap_size();
-          }
-      #else
-          int _freeRam ()
-          {
-            extern int __heap_start, *__brkval;
-            int v;
-            return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-         }
-      #endif
-    #endif
-  #endif
+  int _freeRam ()
+  {
+    extern int __heap_start, *__brkval;
+    int v;
+    return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+ }
 #endif
 
 #define MAX_TIMERS 3
@@ -115,7 +110,10 @@ public:
     EEPROM_File file;
     char content[30];
     nString cont(content, sizeof(content));
-    if(file.no_files()==-1) file.create_FS(4);
+    if(file.no_files()==-1) {
+        file.format();
+        file.create_FS(NO_EEPROM_FILES);
+    }
     if(file.open("nw.cfg", cont))
     {
         cont.split(' ');
@@ -412,19 +410,24 @@ public:
             for(int i=0;i<_link->message["value"].size;i++)
                if(_link->message["value"].theBuf[i]=='\'') _link->message["value"].theBuf[i]='\"';
             file.save("script", _link->message["value"]);
-            #ifdef ESP32
+            #ifdef ESP32 || ESP8266
              ESP.restart();
             #endif
         }
         else if(_link->message["port"]=="reset")
         {
             EEPROM_File file;
-            file.create_FS(4);
-            readConfig();
+            file.format();
+            file.create_FS(NO_EEPROM_FILES);
+            #ifdef ESP32 || ESP8266
+             ESP.restart();
+            #endif
         }
         else if(_link->message["port"]=="restart")
         {
-
+            #ifdef ESP32 || ESP8266
+             ESP.restart();
+            #endif
         }
         else
         {

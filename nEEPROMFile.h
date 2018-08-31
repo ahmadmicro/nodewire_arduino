@@ -3,6 +3,14 @@
 #ifndef EEPROM_File_H
 #define EEPROM_File_H
 
+#ifdef ESP8266
+   #define EEPROMFILESIZE 2048
+#elif defined ESP32
+   #define EEPROMFILESIZE 4096
+#else
+   #define EEPROMFILESIZE 1024
+#endif
+
 class EEPROM_File
 {
 private:
@@ -35,17 +43,13 @@ private:
 public:
   EEPROM_File()
   {
-    #ifdef ESP8266
-      EEPROM.begin(2048);
-    #elif defined ESP32
-       EEPROM.begin(4096);
-    #endif
+      EEPROM.begin(EEPROMFILESIZE);
   }
 
   void format()
   {
       int i  = 0;
-      while(i<2048)
+      while(i<EEPROMFILESIZE)
       {
         EEPROM.write(i, 0);
         i++;
