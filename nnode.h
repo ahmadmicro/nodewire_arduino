@@ -414,6 +414,10 @@ public:
              ESP.restart();
             #endif
         }
+        else if(_link->message["port"]=="scriptlet")
+        {
+            if(fn_portvalue!=NULL) fn_portvalue(_link->message["port"], _link->message["value"]);
+        }
         else if(_link->message["port"]=="reset")
         {
             EEPROM_File file;
@@ -467,6 +471,8 @@ public:
       if(_link->response.theBuf[0]==0)
       {
         _link->response = "cp ThisIs ";
+        _link->response += id;
+        _link->response += " ";
         _link->response += address;
         last_announced = millis();
       }

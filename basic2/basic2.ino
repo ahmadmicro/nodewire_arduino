@@ -4,15 +4,15 @@
 #define LED LED_BUILTIN
 
 Node<int> node;
-Esp8266Link link;
+Esp8266Link lnk;
 
 void setup() {
   Serial.begin(38400);
-  link.begin();
+  lnk.begin();
 
   node.inputs = "led";
   node.init("node01");
-  node.setLink(&link);
+  node.setLink(&lnk);
 
   node.on("led",
      [](nString val, nString sender) {

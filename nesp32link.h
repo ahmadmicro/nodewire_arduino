@@ -3,8 +3,6 @@
 
 #include <nlink.h>
 #include <WiFi.h>
-//#include <FS.h>
-//#include <AsyncTCP.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
@@ -162,7 +160,7 @@ private:
            configuration["pwd"]=response["pwd"];
            configuration["dev"]=response["dev"];
            debug.log2("opened gw.cfg=>");
-            if(debug.level==LOW_LEVEL)
+           if(debug.level==LOW_LEVEL)
               configuration.println(&Serial);
            response.collapse();
            memset(out_buff, '\0', BUFF_SIZE);
@@ -172,12 +170,12 @@ private:
           debug.log2("creating gw.cfg");
           file.create_file("gw.cfg", BUFF_SIZE);
           configuration.create_object("server instance ssid pass user pwd dev");
-          configuration["server"] = "cloud.nodewire.org";
-          configuration["instance"]="instance";
+          configuration["server"] = "dashboard.nodewire.org";
+          configuration["instance"]="1jex2k7cbedg";
           configuration["ssid"] = "ssid";
           configuration["pass"] = "12345678";
-          configuration["user"]="user";
-          configuration["pwd"]="12345678";
+          configuration["user"]="test2@microscale.net";
+          configuration["pwd"]="secret";
           configuration["dev"]="mygw";
 
           configuration.dump_json(out_buff);
@@ -235,17 +233,18 @@ public:
     bool apmode = false;
     while (WiFi.status() != WL_CONNECTED && connected==false) {
       yield();
-      if(millis()-wt>5000)
+      if(millis()-wt>1000)
       {
         debug.log2(".");
         //ESP.wdtFeed();
         wt = millis();
       }
-      if(millis()-apw>30000)
+      if(millis()-apw>5000)
       {
           if(apmode!=true)
           {
             apmode = true;
+            station_mode = false;
             WiFi.softAP(configuration["dev"].theBuf, "12345678");// configuration["pwd"].theBuf);
             debug.log2("access point");
             debug.log2(configuration["dev"].theBuf);
@@ -258,17 +257,18 @@ public:
             return;
           }
           http_server.handleClient();
-          ArduinoOTA.handle();
+          //ArduinoOTA.handle();
       }
     }
     station_mode = true;
+    debug.log2("station mode");
     WiFi.softAPdisconnect(true);
     debug.log2("");
     debug.log2("WiFi connected");
     debug.log2("IP address: ");
     //debug.log2(WiFi.localIP());
-    if(station_mode)
-        startOTA();
+    //if(station_mode)
+    startOTA();
     startWeb();
 
     int tries = 0;
@@ -329,26 +329,26 @@ public:
      http_server.handleClient();
      if(station_mode)
         ArduinoOTA.handle();
-     if (!wificonnected() &&  (station_mode || millis()-last_attempt>120000)) {
-        //if(wifi_softap_get_station_num()==0)
-        if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode  && millis()-last_attempt>120000)
-        {
-            Serial.println("AP mode");
-            WiFi.softAP(configuration["dev"].theBuf, "12345678");
-            station_mode = false;
-        }
-
+     if (!wificonnected() && (station_mode || millis()-last_attempt>30000)) {
         if(millis()-last_attempt>5000 && WiFi.status()!=WL_IDLE_STATUS)
         {
             last_attempt = millis();
-            Serial.print("Connecting to ");
-            Serial.print(configuration["ssid"].theBuf);
-            Serial.println("...");
             WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
+
+            if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode)
+            {
+                if(debug.level == LOW_LEVEL)
+                {
+                    Serial.print("Connecting to ");
+                    Serial.print(configuration["ssid"].theBuf);
+                    Serial.println("...");
+                }
+                debug.log2("AP mode");
+                WiFi.softAP(configuration["dev"].theBuf, "12345678");
+                station_mode = false;
+            }
         }
 
-        //  return;
-        //Serial.println("WiFi connected");
       }
 
       if (wificonnected()) {
@@ -381,7 +381,8 @@ public:
             Serial.println("connected");
             login();
             station_mode = true;
-            WiFi.softAPdisconnect(true);
+            debug.log2("station mode");
+            //WiFi.softAPdisconnect(true);
           }
           /*else
           {

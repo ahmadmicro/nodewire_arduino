@@ -169,12 +169,12 @@ private:
           debug.log2("creating gw.cfg");
           file.create_file("gw.cfg", BUFF_SIZE);
           configuration.create_object("server instance ssid pass user pwd dev");
-          configuration["server"] = "cloud.nodewire.org";
-          configuration["instance"]="instance";
+          configuration["server"] = "dashboard.nodewire.org";
+          configuration["instance"]="1jex2k7cbedg";
           configuration["ssid"] = "ssid";
           configuration["pass"] = "12345678";
-          configuration["user"]="user";
-          configuration["pwd"]="12345678";
+          configuration["user"]="test2@microscale.net";
+          configuration["pwd"]="secret";
           configuration["dev"]="mygw";
 
           configuration.dump_json(out_buff);
@@ -232,13 +232,13 @@ public:
     bool apmode = false;
     while (WiFi.status() != WL_CONNECTED && connected==false) {
       yield();
-      if(millis()-wt>5000)
+      if(millis()-wt>1000)
       {
         debug.log2(".");
         ESP.wdtFeed();
         wt = millis();
       }
-      if(millis()-apw>30000)
+      if(millis()-apw>5000)
       {
           if(apmode!=true)
           {
@@ -255,7 +255,7 @@ public:
             return;
           }
           http_server.handleClient();
-          ArduinoOTA.handle();
+          //ArduinoOTA.handle();
       }
     }
     station_mode = true;
@@ -264,8 +264,8 @@ public:
     debug.log2("WiFi connected");
     debug.log2("IP address: ");
     //debug.log2(WiFi.localIP());
-    if(station_mode)
-        startOTA();
+    //if(station_mode)
+    startOTA();
     startWeb();
 
     int tries = 0;
@@ -323,7 +323,7 @@ public:
      http_server.handleClient();
      if(station_mode)
         ArduinoOTA.handle();
-     if (!wificonnected() &&  (station_mode || millis()-last_attempt>120000)) {
+     if (!wificonnected() &&  (station_mode || millis()-last_attempt>30000)) {
         //if(wifi_softap_get_station_num()==0)
         if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode  && millis()-last_attempt>120000)
         {
