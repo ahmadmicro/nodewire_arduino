@@ -12,7 +12,7 @@
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
     #define BUFF_SIZE 230
 #else
-    #define BUFF_SIZE 40
+    #define BUFF_SIZE 70
 #endif
 
 class Link
@@ -56,27 +56,45 @@ class Link
       {
         if(nodename==NULL) return true;
         int len = message.splitPT(' ');
-        if(len==5)
-          message.convert_object("address command port value sender");
-        else if(len==4)
-          message.convert_object("address command port sender");
-        else if(len==3)
-          message.convert_object("address command sender");
-        else
-        {
-          resetmessage();
-          return false;
-        }
-        if(message["address"]==*nodename || message["address"]=="any")
-        {
-           message["sender"].trim();
-          return true;
-        }
-        else
-        {
-            resetmessage();
-            return false;
-        }
+        #ifdef NW
+            if(len==5)
+              message.convert_object("address command port value sender");
+            else if(len==4)
+              message.convert_object("address command port sender");
+            else if(len==3)
+              message.convert_object("address command sender");
+            else
+            {
+              resetmessage();
+              return false;
+            }
+            if(message["address"]==*nodename || message["address"]=="any")
+            {
+               message["sender"].trim();
+              return true;
+            }
+            else
+            {
+                resetmessage();
+                return false;
+            }
+        #else
+            if(len<3)
+            {
+              resetmessage();
+              return false;
+            }
+            if(message[0]==*nodename || message[0]=="any")
+            {
+               message[len-1].trim();
+              return true;
+            }
+            else
+            {
+                resetmessage();
+                return false;
+            }
+        #endif
       }
 
       checkSend();

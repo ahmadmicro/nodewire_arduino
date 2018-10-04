@@ -33,9 +33,7 @@ private:
        EEPROM.write(i, content[i-address]);
        i++;
      }
-     #ifdef ESP8266
-      EEPROM.commit();
-     #elif defined ESP32
+     #ifdef ESP8266 || ESP32
       EEPROM.commit();
      #endif
   }
@@ -43,7 +41,9 @@ private:
 public:
   EEPROM_File()
   {
-      EEPROM.begin(EEPROMFILESIZE);
+      #ifdef EPS32 || ESP8266
+        EEPROM.begin(EEPROMFILESIZE);
+      #endif
   }
 
   void format()
@@ -117,8 +117,8 @@ public:
     char directory[24];
     nString entry(directory, 24);
     int no = no_files();
-    nString Directory(new char[no*24]);
     if(no==-1) return "";
+    nString Directory(new char[no*24]);
     for(int fileno=0;fileno<no;fileno++)
     {
       entry.collapse();

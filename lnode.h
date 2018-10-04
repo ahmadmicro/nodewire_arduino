@@ -1,5 +1,5 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef LNODE_H
+#define LNODE_H
 
 #include <nstring2.h>
 #include <nlink.h>
@@ -172,6 +172,12 @@ public:
     readConfig();
 
     with_props = false;
+
+    if(_freeRam()<800)
+    {
+        debug.log("Memory LoW!\nHalting");
+        while(1);
+    }
   }
 
   void init_with_props(nString nodename)
@@ -230,12 +236,6 @@ public:
   }
 
   void on(nString port, readHandler handler)
-  {
-    int index = outputs.find(with_props?"name="+port:port);
-    if(index!=-1) read_handlers[index] = handler;
-  }
-
-  void on_read(nString port, readHandler handler)
   {
     int index = outputs.find(with_props?"name="+port:port);
     if(index!=-1) read_handlers[index] = handler;
@@ -314,42 +314,42 @@ public:
   {
     if(_link->messageArrived())
     {
-      if(_link->message["command"]=="ack" || _link->message["command"]=="not_registered") {
+      if(_link->message[1]=="ack" || _link->message[1]=="not_registered") {
         announcing = false;
       }
-      else if(_link->message["command"]=="get")
+      else if(_link->message[1]=="get")
       {
-        if(_link->message["port"]=="name")
+        if(_link->message[2]=="name")
         {
-          _link->response = _link->message["sender"] + " ThisIs " + address;
+          _link->response = _link->message[_link->message.len-1] + " ThisIs " + address;
         }
-        else if(_link->message["port"]=="id")
+        else if(_link->message[2]=="id")
         {
-          _link->response = _link->message["sender"] + " id " + id + " " + address;
+          _link->response = _link->message[_link->message.len-1] + " id " + id + " " + address;
         }
-        else if(_link->message["port"]=="memory")
+        else if(_link->message[2]=="memory")
         {
-          _link->response = _link->message["sender"] + " memory " + _freeRam() + " " + address;
+          _link->response = _link->message[_link->message.len-1] + " memory " + _freeRam() + " " + address;
         }
-        else if(_link->message["port"]=="properties" && with_props)
+        else if(_link->message[2]=="properties" && with_props)
         {
-            int port = inputs.find("name="+_link->message["value"]);
+            int port = inputs.find("name="+_link->message[3]);
             if(port!=-1)
             {
-                 _link->response = _link->message["sender"] + " properties " +  _link->message["value"] + " " + inputs[port]["prop"] + " " + address;
+                 _link->response = _link->message[_link->message.len-1] + " properties " +  _link->message[3] + " " + inputs[port]["prop"] + " " + address;
             }
             else
             {
-                int port = outputs.find("name="+_link->message["value"]);
+                int port = outputs.find("name="+_link->message[3]);
                 if(port!=-1)
                 {
-                     _link->response = _link->message["sender"] + " properties " +  _link->message["value"] + " " + outputs[port]["prop"] + " " + address;
+                     _link->response = _link->message[_link->message.len-1] + " properties " +  _link->message[3] + " " + outputs[port]["prop"] + " " + address;
                 }
             }
         }
-        else if(_link->message["port"]=="ports")
+        else if(_link->message[2]=="ports")
         {
-          _link->response = _link->message["sender"];
+          _link->response = _link->message[_link->message.len-1];
           _link->response+=" ports ";
           for(int i=0;i<outputs.len;i++)
           {
@@ -366,73 +366,73 @@ public:
         }
         else
         {
-          int port = outputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
+          int port = outputs.find(with_props?"name="+_link->message[2]:_link->message[2]);
           if(port!=-1)
           {
              if(read_handlers[port]!=NULL)
              {
                  nString val = read_handlers[port]();
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
-                 _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
+                 _link->response = _link->message[_link->message.len-1] + " portvalue " + _link->message[2] + " " + val + " " + address;
              }
              else if(get_portvalue!=NULL)
              {
-                 nString val = get_portvalue(_link->message["port"]);
+                 nString val = get_portvalue(_link->message[2]);
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
-                 _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
+                 _link->response = _link->message[_link->message.len-1] + " portvalue " + _link->message[2] + " " + val + " " + address;
              }
              else
              {
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
-                _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
+                _link->response = _link->message[_link->message.len-1] + " portvalue " + _link->message[2] + " " + portvalues[port] + " " + address;
             }
           }
           else
           {
-            int port = inputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
+            int port = inputs.find(with_props?"name="+_link->message[2]:_link->message[2]);
             if(port!=-1)
             {
                 if(strlen(_link->response.theBuf)!=0) _link->checkSend();
-                _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
+                _link->response = _link->message[_link->message.len-1] + " portvalue " + _link->message[2] + " " + portvalues[port] + " " + address;
             }
           }
         }
       }
-      else if(_link->message["command"]=="set")
+      else if(_link->message[1]=="set")
       {
-        if(_link->message["port"]=="name")
+        if(_link->message[2]=="name")
         {
-          address = _link->message["value"];
-          _link->response = _link->message["sender"] + " ThisIs " + address;
+          address = _link->message[3];
+          _link->response = _link->message[_link->message.len-1] + " ThisIs " + address;
           _link->resetmessage();
           saveConfig();
           readConfig();
         }
-        else if(_link->message["port"]=="id")
+        else if(_link->message[2]=="id")
         {
-          id = _link->message["value"];
-          _link->response = _link->message["sender"] + " id " + id + " " + address;
+          id = _link->message[3];
+          _link->response = _link->message[_link->message.len-1] + " id " + id + " " + address;
           _link->resetmessage();
           saveConfig();
           readConfig();
         }
-        else if(_link->message["port"]=="script")
+        else if(_link->message[2]=="script")
         {
             EEPROM_File file;
             if(file.filelenght("script")==-1) file.create_file("script", 2000);
-            _link->message["value"].removeends();
-            for(int i=0;i<_link->message["value"].size;i++)
-               if(_link->message["value"].theBuf[i]=='\'') _link->message["value"].theBuf[i]='\"';
-            file.save("script", _link->message["value"]);
+            _link->message[3].removeends();
+            for(int i=0;i<_link->message[3].size;i++)
+               if(_link->message[3].theBuf[i]=='\'') _link->message[3].theBuf[i]='\"';
+            file.save("script", _link->message[3]);
             #ifdef ESP32 || ESP8266
              ESP.restart();
             #endif
         }
-        else if(_link->message["port"]=="scriptlet")
+        else if(_link->message[2]=="scriptlet")
         {
-            if(set_portvalue!=NULL) set_portvalue(_link->message["port"], _link->message["value"]);
+            if(set_portvalue!=NULL) set_portvalue(_link->message[2], _link->message[3]);
         }
-        else if(_link->message["port"]=="reset")
+        else if(_link->message[2]=="reset")
         {
             EEPROM_File file;
             file.format();
@@ -441,7 +441,7 @@ public:
              ESP.restart();
             #endif
         }
-        else if(_link->message["port"]=="restart")
+        else if(_link->message[2]=="restart")
         {
             #ifdef ESP32 || ESP8266
              ESP.restart();
@@ -449,27 +449,27 @@ public:
         }
         else
         {
-          int port = inputs.find(with_props?"name="+_link->message["port"]:_link->message["port"]);
+          int port = inputs.find(with_props?"name="+_link->message[2]:_link->message[2]);
           if(port!=-1)
           {
-            portvalues[port] = (PVT) _link->message["value"];
+            portvalues[port] = (PVT) _link->message[3];
             if(set_handlers[port]!=NULL)
-              set_handlers[port](_link->message["value"], _link->message["sender"]);
+              set_handlers[port](_link->message[3], _link->message[_link->message.len-1]);
             if(strlen(_link->response.theBuf)!=0) _link->checkSend();
-            _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
-            if(set_portvalue!=NULL) set_portvalue(_link->message["port"], _link->message["value"]);
+            _link->response = _link->message[_link->message.len-1] + " portvalue " + _link->message[2] + " " + portvalues[port] + " " + address;
+            if(set_portvalue!=NULL) set_portvalue(_link->message[2], _link->message[3]);
           }
-          else if(set_portvalue!=NULL) set_portvalue(_link->message["port"], _link->message["value"]);
+          else if(set_portvalue!=NULL) set_portvalue(_link->message[2], _link->message[3]);
         }
       }
-      else if(_link->message["command"]=="portvalue" && remote != NULL && remote_address==_link->message["sender"])
+      else if(_link->message[1]=="portvalue" && remote != NULL && remote_address==_link->message[_link->message.len-1])
       {
           debug.log("handing remote event");
           #if  defined(ESP8266) || defined(ESP32)
-          remote_handle(_link->message["port"], _link->message["value"]);
+          remote_handle(_link->message[2], _link->message[3]);
           #endif
       }
-      else if(_link->message["command"]=="ping")
+      else if(_link->message[1]=="ping")
       {
         announcing = true;
         last_announced = millis() - 5000;
