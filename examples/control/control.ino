@@ -16,7 +16,7 @@ void setup() {
   node.init("node01");
   node.setLink(&link);
 
-  node.on_read("count",
+  node.on("count",
     []()->nString {
       return count;
     }

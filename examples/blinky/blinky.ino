@@ -12,8 +12,8 @@ void setup() {
   Serial.begin(38400);
   link.begin(&Serial);
 
-  node.inputs = "led:List|on,off,blink";
-  node.init_with_props("node01");
+  node.inputs = "led";
+  node.init("node01");
   node.setLink(&link);
 
   node.on("led",

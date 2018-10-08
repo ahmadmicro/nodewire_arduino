@@ -11,11 +11,13 @@ and functions that will consume the value provided when any of the input ports a
 
 .. code-block:: c++
 
-    Node<int> node; // store input port values as int
+    Node<int> node; // store port values as int
     node.inputs = "led"; // list of input portnames separated by space
     node.outputs = "button"; // list of output portnames separated by space
 
-    node.on_read("button",
+    node.init("nodename"); // create the node and its ports
+
+    node.on("button",
        []() -> nString {
           return digitalRead(BUTTON);
        }
@@ -154,8 +156,8 @@ Here is an example that remakes the led example but this time, the port takes on
       Serial.begin(38400);
       link.setSerial(&Serial);
 
-      node.inputs = "led:List|on,off,blink";
-      node.init_with_props("blinky");
+      node.inputs = "led";
+      node.init("blinky");
       node.begin(&link);
 
       node.on("led",
@@ -257,7 +259,7 @@ Multiple port example
        }
     );
 
-    node.on_read("mains",
+    node.on("mains",
       []() -> nString {
           return digitalRead(MAINS);
        }
@@ -334,7 +336,6 @@ and this
 
 Copying
 -------
-
 You can copy into a string by using the assignment operation.
 No new memory is allocated in this process unless if the nString has not previously been assigned a buffer.
 
@@ -549,3 +550,57 @@ To convert an nString Object to a JSON string:
     list.split(' '); //create array
     list.dump_json(buff);//convert to json
     Serial.println(buff);
+
+
+**Parsing PlainTalk**
+
+.. code-block:: c++
+
+    Serial.begin(38400);
+    nString dval = "node01 set person {\"name\": \"ahmad\", \"age\": 40} lrsnr49yxurz:re";
+    dval.splitPT(' ');
+    dval.convert_object("address command port value sender");
+    dval["value"].println(&Serial);
+    dval["value"].parse_as_json();
+    dval["value"].println(&Serial);
+
+
+
+EEPROM files
+====================
+This is a crude file system that allows you to store files in EEPROMs.
+It is dependent on Arduino's EEPROM library.
+
+Before you can store files, you must file create the directory:
+
+
+.. code-block:: c++
+
+  #include <nEEPROMFile.h>
+
+  void setup() {
+    Serial.begin(38400);
+    EEPROM_File file;
+    if(file.no_files()==-1)
+    {
+      Serial.println("Creating file system");
+      file.create_FS(4);
+    }
+
+    char buffer[100];
+    nString story(buffer, sizeof(buffer));
+
+    if(!file.open("story.txt", story))
+    {
+      Serial.println("creating file");
+      file.create_file("story.txt", 100);
+      story = "cowards die many times before their death.";
+      file.save("story.txt", story);
+    }
+
+    Serial.println(buffer);
+  }
+
+  void loop() {
+
+  }

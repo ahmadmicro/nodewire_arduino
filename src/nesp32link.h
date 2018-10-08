@@ -7,7 +7,6 @@
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 
-
 WebServer http_server(80);
 
 class Esp32Link: public Link

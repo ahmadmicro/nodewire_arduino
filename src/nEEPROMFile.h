@@ -128,7 +128,6 @@ public:
       Directory+=entry;
       Directory+= "\n";
     }
-    Directory.print();
     return Directory;
   }
 

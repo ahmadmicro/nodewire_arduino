@@ -10,8 +10,8 @@ void setup() {
   Serial.begin(38400);
   link.begin(&Serial);
 
-  node.inputs = "9 10 11 12 13";
-  node.outputs ="14 15 16 17 2 3";
+  node.inputs = "11 12 13";
+  node.outputs = "2 3";
 
   node.init("node01");
   node.setLink(&link);
