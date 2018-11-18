@@ -11,14 +11,9 @@ void setup() {
   link.begin(&Serial);
 
   node.inputs = "led";
-  node.init("node01");
-  node.setLink(&link);
+  node.init("node##", &link);
 
-  node.on("led",
-     [](nString val, nString sender) {
-        digitalWrite(LED,(int)val);
-     }
-  );
+  node["led"] >> digitalPin(LED);
 
   pinMode(LED, OUTPUT);
 }

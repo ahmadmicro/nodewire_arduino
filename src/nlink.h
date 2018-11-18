@@ -58,7 +58,7 @@ class Link
       {
         if(nodename==NULL) return true;
         int len = message.splitPT(' ');
-        #ifdef NW
+        #ifdef NODE_H
             if(len==5)
               message.convert_object("address command port value sender");
             else if(len==4)

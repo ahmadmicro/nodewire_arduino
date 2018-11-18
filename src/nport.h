@@ -1,6 +1,15 @@
 #ifndef PORT_H
 #define PORT_H
 
+typedef  nString (*readHandler)();
+typedef  nString (*getHandler)(nString);
+typedef  void (*setHandler)( nString, nString );
+
+union PortHandler{
+  setHandler* set_handler;
+  readHandler* get_handler;
+};
+
 template <class PVT>
 class Port
 {
@@ -9,9 +18,10 @@ class Port
    bool remote = false;
    nString cmd;
    PVT* val;
-
+   
  public:
    const char* portname;
+   union PortHandler handler;
 
    Port(nString* node, const char* port, nString* resp, PVT* pval)
    {
@@ -35,14 +45,21 @@ class Port
      *response += value;
      *response += " ";
      *response += *nodename;
-     val = &value;
+     *val = value;
    }
 
+  void operator>>(setHandler hh){
+    *handler.set_handler = hh;
+  }
 
-   operator PVT()
-   {
-     return (PVT)(*val);
-   }
+  void operator<<(readHandler hh){
+    *handler.get_handler = hh;
+  }
+
+  operator PVT()
+  {
+    return (PVT)(*val);
+  }
 };
 
 template <class NVT>

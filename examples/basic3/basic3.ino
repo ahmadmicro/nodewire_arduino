@@ -1,10 +1,10 @@
 #include <nnode.h>
-#include <nesp8266link.h>
+#include <nesp32link.h>
 
 #define LED LED_BUILTIN
 
 Node<int> node;
-Esp8266Link lnk;
+Esp32Link lnk;
 
 void setup() {
   lnk.begin();

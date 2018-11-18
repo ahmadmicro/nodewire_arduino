@@ -1,5 +1,5 @@
-#ifndef ESP32_H
-#define  ESP32_H
+#ifndef N_ESP32_H
+#define  N_ESP32_H
 
 #include <nlink.h>
 #include <WiFi.h>
@@ -7,7 +7,7 @@
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 
-WebServer http_server(80);
+WebServer http_server(80); // https://github.com/zhouhan0126/WebServer-esp32
 
 class Esp32Link: public Link
 {
@@ -121,8 +121,8 @@ private:
 
     http_server.on("/config",
         [&]() {
-              config();
-         }
+          config();
+        }
     );
 
     http_server.on("/",
@@ -192,7 +192,7 @@ private:
      if(!file.save("gw.cfg", response))
      {
          debug.log("Re-creating File EEMPROM System...");
-         file.create_FS(4);
+         file.create_FS(5);
          if(file.save("gw.cfg", response))
             debug.log("success");
      }
@@ -224,8 +224,8 @@ public:
   {
     readEM();
     //WiFi.mode(WIFI_STA);
-    WiFi.setHostname(configuration["dev"].theBuf);
     WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
+    WiFi.setHostname(configuration["dev"].theBuf);
 
     long wt = millis();
     long apw = wt;

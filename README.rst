@@ -17,17 +17,13 @@ and functions that will consume the value provided when any of the input ports a
 
     node.init("nodename"); // create the node and its ports
 
-    node.on("button",
-       []() -> nString {
-          return digitalRead(BUTTON);
-       }
-    );
+    node["button"] << []() -> nString {
+      return digitalRead(BUTTON);
+    };
 
-    node.on("led",
-      [](nString val, nString sender) {
-           digitalWrite(LED_BUILTIN,(int)val);
-       }
-    );
+    node["led"] >> [](nString val, nString sender) {
+      digitalWrite(LED_BUILTIN,(int)val);
+    };
 
 This is the core functionality of a node. But a node cannot work in isolation. It has to be able to talk to the outside world. It is the link class
 that provides this connectivity. And there are many types of links: SerialLink, esp8266link, ethernetlink, gprslink, nrflink etc, depending
@@ -65,11 +61,9 @@ And here is the complete code:
       node.init("node01");
       node.begin(&link);
 
-      node.on("led",
-         [](nString val, nString sender) {
-            digitalWrite(LED,(int)val);
-         }
-      );
+      node["led"] >> [](nString val, nString sender) {
+        digitalWrite(LED_BUILTIN,(int)val);
+      };
 
       pinMode(LED, OUTPUT);
     }
@@ -157,28 +151,23 @@ Here is an example that remakes the led example but this time, the port takes on
       link.setSerial(&Serial);
 
       node.inputs = "led";
-      node.init("blinky");
-      node.begin(&link);
+      node.init("blinky", &link);
 
-      node.on("led",
-         [](nString val, nString sender) {
-             node.stopTimer(0);
-             if(val=="on")
-                 digitalWrite(LED,1);
-             else if(val=="off")
-                 digitalWrite(LED,0);
-             else if(val=="blink")
-                 node.startTimer(0);
-         }
-      );
+      node["led"] >> [](nString val, nString sender) {
+          node.stopTimer(0);
+          if(val=="on")
+              digitalWrite(LED,1);
+          else if(val=="off")
+              digitalWrite(LED,0);
+          else if(val=="blink")
+              node.startTimer(0);
+      };
 
 
-      node.on_timer(500,
-         []() {
-              if(ledon) digitalWrite(LED, 1); else digitalWrite(LED, 0);
-                 ledon = !ledon;
-         }
-      );
+      node.timer(500, []() {
+        if(ledon) digitalWrite(LED, 1); else digitalWrite(LED, 0);
+            ledon = !ledon;
+      });
 
       pinMode(LED, OUTPUT);
     }
@@ -232,38 +221,27 @@ Multiple port example
     node.outputs = "mains gen";
     node.inputs = "ignition buzzer relay";
 
-    node.init("sco");
-    node.begin(&link);
+    node.init("sco", &link);
 
-    node.on("ignition",
-      [](nString val, nString sender) {
-         digitalWrite(IGNITION,(int)val);
-       }
-    );
+    node.["ignition"] >> [](nString val, nString sender) {
+      digitalWrite(IGNITION,(int)val);
+    };
 
-    node.on("buzzer",
-      [](nString val, nString sender) {
-         digitalWrite(BUZZER,(int)val);
-       }
-    );
+    node["buzzer"] >> [](nString val, nString sender) {
+      digitalWrite(BUZZER,(int)val);
+    };
 
-    node.on_timer(1000,
-      []() {
-         Serial.println("tick");
-       }
-    );
+    node.timer(1000, []() {
+      Serial.println("tick");
+    });
 
-    node.on_timer(500,
-      []() {
-         Serial.println("tock");
-       }
-    );
+    node.timer(500, []() {
+      Serial.println("tock");
+    });
 
-    node.on("mains",
-      []() -> nString {
-          return digitalRead(MAINS);
-       }
-    );
+    node.["mains"] << []() -> nString {
+      return digitalRead(MAINS);
+    };
 
     pinMode(IGNITION, OUTPUT);
     node.startTimer(0);

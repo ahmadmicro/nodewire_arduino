@@ -33,7 +33,7 @@ private:
        EEPROM.write(i, content[i-address]);
        i++;
      }
-     #ifdef ESP8266 || ESP32
+     #if defined ESP8266 || ESP32
       EEPROM.commit();
      #endif
   }
@@ -41,7 +41,7 @@ private:
 public:
   EEPROM_File()
   {
-      #ifdef EPS32 || ESP8266
+      #if defined ESP32 || ESP8266
         EEPROM.begin(EEPROMFILESIZE);
       #endif
   }

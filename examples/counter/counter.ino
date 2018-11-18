@@ -16,17 +16,13 @@ void setup() {
   node.init("node01");
   node.setLink(&link);
 
-  node.on("count",
-    []()->nString {
-      return count;
-    }
-  );
+  node["count"] << []()->nString {
+    return count;
+  };
 
-  node.on_timer(1000,
-     []() {
-         node["count"] = count++;
-     }
-  );
+  node.timer(1000, []() {
+    node["count"] = count++;
+  });
 
   node.startTimer(0);
 }

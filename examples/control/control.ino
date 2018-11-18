@@ -13,35 +13,30 @@ void setup() {
   link.begin(&Serial);
 
   node.outputs = "count";
-  node.init("node01");
-  node.setLink(&link);
+  node.init("node_##", &link);
 
-  node.on("count",
-    []()->nString {
-      return count;
+  node["count"] << []()->nString {
+    return count;
+  };
+
+  node.timer(1000, []() {
+    node["count"] = count++;
+    if(count==10)
+    {
+      auto& sco = node.get_node<int>("sco");
+      sco["buzzer"]=1;
+      sco.when("mains",
+          [](int value){
+              debug.log("mains event");
+              if(value==1) debug.log("mains restored");
+          }
+      );
     }
-  );
-
-  node.on_timer(1000,
-     []() {
-         node["count"] = count++;
-         if(count==10)
-         {
-            auto& sco = node.get_node<int>("sco");
-            sco["buzzer"]=1;
-            sco.when("mains",
-                [](int value){
-                    debug.log("mains event");
-                    if(value==1) debug.log("mains restored");
-                }
-            );
-         }
-         if(count==12)
-         {
-            node.get_node<int>("sco")["buzzer"]=0;
-         }
-     }
-  );
+    if(count==12)
+    {
+      node.get_node<int>("sco")["buzzer"]=0;
+    }
+  });
 
   node.startTimer(0);
 }

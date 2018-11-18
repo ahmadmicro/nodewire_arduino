@@ -1,5 +1,8 @@
 #include <nstring2.h>
 #include <FS.h>
+#ifdef ESP32
+#include <SPIFFS.h>
+#endif
 
 class nData
 {

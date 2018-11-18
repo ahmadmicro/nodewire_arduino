@@ -38,10 +38,16 @@
 
 #define MAX_TIMERS 3
 
-typedef  void (*setHandler)( nString, nString );
+#define digitalPins(ports, pins) [](nString port, nString val) { \
+  int pp = ports.find(port);                                     \
+  if(pp!=-1)                                                     \
+      digitalWrite(pins[pp],(int)val);                           \
+}                                                                \
+
+#define digitalPin(pin) [](nString val, nString sender) {digitalWrite(pin,(int)val);}  
+#define outputValue(var) []() -> nString {  return var;}               
+
 typedef  void (*timerHandler)();
-typedef  nString (*readHandler)();
-typedef  nString (*getHandler)(nString);
 
 template <class PVT>
 class Node
@@ -126,6 +132,10 @@ public:
     {
        id = "none";
        file.create_file("nw.cfg", 30);
+       for(int i=0; i<address.len;i++)
+       {
+          if(_name[i]=='#') _name[i] = (char) random('0', ':');
+       }
        cont.create_array(2);
        cont.append(address);
        cont.append(id);
@@ -206,6 +216,12 @@ public:
     with_props = true;
   }
 
+  void init(nString nodename, Link* link)
+  {
+    init(nodename);
+    setLink(link);
+  }
+
   void setLink(Link* link)
   {
     _link = link;
@@ -218,7 +234,7 @@ public:
     if(index!=-1) set_handlers[index] = handler;
   }
 
-  void on_timer(long duration, timerHandler handler)
+  void timer(long duration, timerHandler handler)
   {
     if(no_timers<=2)
     {
@@ -241,26 +257,44 @@ public:
     if(index!=-1) read_handlers[index] = handler;
   }
 
+  void operator>>(setHandler handler){
+    set_portvalue = handler;
+  }
+
+  void operator<<(getHandler handler){
+    get_portvalue = handler;
+  }
+
   Port<PVT>& operator[](const char* p)
   {
-    if(outputs.find(p)!=-1)
+    int pp = outputs.find(p);
+    if(pp!=-1)
     {
       if(port==NULL)
       {
         port = new Port<PVT>(&address, p, &_link->response, &portvalues[outputs.find(p)]);
+        port->handler.get_handler = &read_handlers[pp];
       }
       else
+      {
         port->portname = p;
+        port->handler.get_handler = &read_handlers[pp];
+      }
       return *port;
     }
     else if(inputs.find(p)!=-1)
     {
+      pp = inputs.find(p);
       if(port==NULL)
       {
         port = new Port<PVT>(&address, p, &_link->response, &portvalues[inputs.find(p)]);
+        port->handler.set_handler = &set_handlers[pp];
       }
       else
+      {
         port->portname = p;
+        port->handler.set_handler = &set_handlers[pp];
+      }
       return *port;
     }
     else
@@ -314,9 +348,11 @@ public:
   {
     if(_link->messageArrived())
     {
-      if(_link->message["command"]=="ack" || _link->message["command"]=="not_registered") {
+      if(_link->message["command"]=="ack") {
         announcing = false;
       }
+      else if(_link->message["command"]=="not_registered")
+        announcing = false;
       else if(_link->message["command"]=="get")
       {
         if(_link->message["port"]=="name")
