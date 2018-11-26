@@ -35,6 +35,11 @@ public:
 
     if(SPIFFS.begin())
       debug.log2("File system initialized");
+    else
+    {
+      debug.log2("Formating File system ...");
+      SPIFFS.begin(true);
+    }
   }
 
   int no_records()

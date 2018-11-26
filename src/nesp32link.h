@@ -3,6 +3,7 @@
 
 #include <nlink.h>
 #include <WiFi.h>
+#include <esp_wifi.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
@@ -23,18 +24,26 @@ private:
   bool auth_done = false;
   int wait;
   bool station_mode = false;
+  long chk_wifi;
 
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
-
+  wifi_sta_list_t stationList;
 public:
     nString configuration;
 
     bool wificonnected()
     {
-      if(WiFi.status() != WL_CONNECTED)// && connected==false)
-        return false;
+      if(station_mode)
+      {
+        if(WiFi.status() != WL_CONNECTED)// && connected==false)
+          return false;
+        else
+          return true;
+      }
       else
-        return true;
+      {
+        if(stationList.num>0) return true; else return false;
+      }
     }
 
 
@@ -212,12 +221,11 @@ public:
 
   int connect_state()
   {
-      if(client.connected())
-        return 2;
-      else if(wificonnected())
-        return 1;
-      else
-        return 0;
+    if(wificonnected() && client.connected())
+      return 2;
+    if(wificonnected())
+      return 1;
+    return 0;
   }
 
   void begin()
@@ -350,6 +358,18 @@ public:
 
       }
 
+      if(!station_mode && millis()-chk_wifi>5000)
+      {
+        chk_wifi = millis();
+        esp_wifi_ap_get_sta_list(&stationList); 
+      }
+
+      if(!wificonnected() && client.connected())
+      {
+        client.stop();
+        debug.log2("disconnecting from cp");
+      }
+
       if (wificonnected()) {
         if(client.connected() && strlen(out_buff)!=0)
         {
@@ -358,7 +378,7 @@ public:
           memset(out_buff, '\0', sizeof(out_buff));
         }
 
-        if(client.connected() && (millis()  - last_ping >= connection_timeout))
+        if(client.connected() && (millis() - last_ping >= connection_timeout))
         {
            last_ping = millis();
            response = "cp keepalive ";
@@ -379,8 +399,8 @@ public:
           if (client.connect(configuration["server"].theBuf, 10001)) {
             Serial.println("connected");
             login();
-            station_mode = true;
-            debug.log2("station mode");
+            //station_mode = true;
+            //debug.log2("station mode");
             //WiFi.softAPdisconnect(true);
           }
           /*else

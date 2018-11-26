@@ -20,7 +20,7 @@ void setup() {
   node["button"] << outputValue(digitalRead(BUTTON));
 
   node["run"] >> [](nString val, nString sender) {
-     if((int)val == 1) 
+     if((int)val == 1)
        node.startTimer(0);
      else
        node.stopTimer(0);
