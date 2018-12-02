@@ -4,16 +4,16 @@
 #define LED LED_BUILTIN
 
 Node<nString> node;
-SerialLink link;
+SerialLink lnk;
 
 bool ledon = false;
 
 void setup() {
   Serial.begin(38400);
-  link.begin(&Serial);
+  lnk.begin(&Serial);
 
   node.inputs = "led";
-  node.init("node##", &link);
+  node.init("node##", &lnk);
 
   node["led"] >> [](nString val, nString sender) {
     node.stopTimer(0);

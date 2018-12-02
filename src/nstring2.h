@@ -66,6 +66,7 @@ class nString{
       {
         if(should_dispose==true && theBuf!=NULL) {
           delete[] theBuf;
+          theBuf = NULL;
         }
         if(elements!=NULL && len!=0)
         {

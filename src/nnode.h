@@ -132,7 +132,7 @@ public:
     {
        id = "none";
        file.create_file("nw.cfg", 30);
-       for(int i=0; i<address.len;i++)
+       for(int i=0; i<strlen(_name);i++)
        {
           if(_name[i]=='#') _name[i] = (char) random('0', ':');
        }
@@ -272,7 +272,7 @@ public:
     {
       if(port==NULL)
       {
-        port = new Port<PVT>(&address, p, &_link->response, &portvalues[outputs.find(p)]);
+        port = new Port<PVT>(&address, p, &_link->response, NULL);
         port->handler.get_handler = &read_handlers[pp];
       }
       else
@@ -305,7 +305,7 @@ public:
     }
   }
 
-#if  defined(ESP8266) || defined(ESP32)
+#if defined(ESP8266) || defined(ESP32)
   template <class NVT>
   Remote<NVT>& get_node(char* nodename)
   {
@@ -417,11 +417,11 @@ public:
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
                  _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
              }
-             else
+             /*else
              {
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
                 _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
-            }
+            }*/
           }
           else
           {

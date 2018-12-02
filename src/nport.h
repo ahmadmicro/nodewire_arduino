@@ -28,7 +28,10 @@ class Port
      nodename = node;
      portname = port;
      response = resp;
-     val = pval;
+     if(pval!=NULL)
+      val = pval;
+     else
+      val = new PVT();
    }
 
    void set_target(nString& addr)
@@ -46,6 +49,8 @@ class Port
      *response += " ";
      *response += *nodename;
      *val = value;
+
+     return *this;
    }
 
   void operator>>(setHandler hh){

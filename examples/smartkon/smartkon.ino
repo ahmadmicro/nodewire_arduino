@@ -1,11 +1,9 @@
 #include <lnode.h>
 #include <nseriallink.h>
 
-#define LED LED_BUILTIN
-
 Node<int> node;
 SerialLink link;
-int pins[] = {11,12,13};
+int pins[] = {11,12,LED_BUILTIN};
 
 void setup() {
   Serial.begin(38400);

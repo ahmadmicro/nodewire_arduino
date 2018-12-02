@@ -23,6 +23,7 @@ private:
   bool auth_done = false;
   int wait;
   bool station_mode = false;
+  long chk_wifi;
 
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
 
@@ -31,10 +32,17 @@ public:
 
     bool wificonnected()
     {
-      if(WiFi.status() != WL_CONNECTED)// && connected==false)
-        return false;
+      if(station_mode)
+      {
+        if(WiFi.status() != WL_CONNECTED)// && connected==false)
+          return false;
+        else
+          return true;
+      }
       else
-        return true;
+      {
+        if(wifi_softap_get_station_num()>0) return true; else return false;
+      }
     }
 
 
@@ -212,7 +220,7 @@ public:
 
   int connect_state()
   {
-      if(client.connected())
+      if(wificonnected() && client.connected())
         return 2;
       else if(wificonnected())
         return 1;
@@ -289,12 +297,15 @@ public:
     }
   }
 
+  bool suspended = false;
+
   void receive()
   {
     while (messageComplete==false && client.available()) {
         char c = client.read();
-
-        if (c == '\n' || index >= BUFF_SIZE-1) {
+        if(!suspended && c=='\"') suspended = true;
+        else if(suspended && c=='\"') suspended = false;
+        if (!suspended && c == '\n' || index >= BUFF_SIZE-1) {
           if(index !=0)
           {
               int pos = message.index(configuration["instance"]);
@@ -323,25 +334,34 @@ public:
      http_server.handleClient();
      if(station_mode)
         ArduinoOTA.handle();
-     if (!wificonnected() &&  (station_mode || millis()-last_attempt>30000)) {
-        //if(wifi_softap_get_station_num()==0)
-        if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode  && millis()-last_attempt>120000)
-        {
-            WiFi.softAP(configuration["dev"].theBuf, "12345678");
-            station_mode = false;
-        }
-
+     if (!wificonnected() && (station_mode || millis()-last_attempt>30000)) {
         if(millis()-last_attempt>5000 && WiFi.status()!=WL_IDLE_STATUS)
         {
             last_attempt = millis();
-            Serial.print("Connecting to ");
-            Serial.print(configuration["ssid"].theBuf);
-            Serial.println("...");
+            if(debug.level == LOW_LEVEL)
+            {
+                Serial.print("Connecting to ");
+                Serial.print(configuration["ssid"].theBuf);
+                Serial.println("...");
+            }
             WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
+
+            if (WiFi.waitForConnectResult() != WL_CONNECTED)
+            {
+                //debug.log2("AP mode");
+                WiFi.softAP(configuration["dev"].theBuf, "12345678");
+                station_mode = false;
+            }
+            else
+              station_mode = true;
         }
 
-        //  return;
-        //Serial.println("WiFi connected");
+      }
+
+      if(!wificonnected() && client.connected())
+      {
+        client.stop();
+        debug.log2("disconnecting from cp");
       }
 
       if (wificonnected()) {
@@ -352,7 +372,7 @@ public:
           memset(out_buff, '\0', sizeof(out_buff));
         }
 
-        if(client.connected() && (millis()  - last_ping >= connection_timeout))
+        if(client.connected() && (millis() - last_ping >= connection_timeout))
         {
            last_ping = millis();
            response = "cp keepalive ";
@@ -362,25 +382,15 @@ public:
            memset(out_buff, '\0', sizeof(out_buff));
         }
 
-        if (!client.connected() || (millis()-last_ack)> (connection_timeout+20000))
+        if (!client.connected() && (millis()-last_ack)> (connection_timeout+20000))
         {
-          client.stop();
-          //Serial.println("### Client has disconnected...");
-
           connection_timeout = 20000;
           last_ack = millis();
 
           if (client.connect(configuration["server"].theBuf, 10001)) {
             Serial.println("connected");
             login();
-            station_mode = true;
-            WiFi.softAPdisconnect(true);
           }
-          /*else
-          {
-            Serial.println('restarting ...');
-            ESP.reset();
-          }*/
         }
      }
   }

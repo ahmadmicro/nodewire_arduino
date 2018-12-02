@@ -10,7 +10,7 @@ void setup() {
   lnk.begin();
 
   node.inputs = "led";
-  node.init("node##", &link);
+  node.init("node##", &lnk);
 
   node["led"] >> digitalPin(LED);
 

@@ -1,8 +1,8 @@
 #include <nnode.h>
 #include <nseriallink.h>
 
-Node<nString> node;
-SerialLink link;
+Node<int> node;
+SerialLink lnk;
 int count = 0;
 
 void setup() {
@@ -10,10 +10,10 @@ void setup() {
   debug.setOutput(&Serial);
   debug.level = LOW_LEVEL;
 
-  link.begin(&Serial);
+  lnk.begin(&Serial);
 
   node.outputs = "count";
-  node.init("node_##", &link);
+  node.init("node_##", &lnk);
 
   node["count"] << []()->nString {
     return count;

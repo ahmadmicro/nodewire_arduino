@@ -28,6 +28,7 @@ private:
 
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
   wifi_sta_list_t stationList;
+  
 public:
     nString configuration;
 
@@ -340,20 +341,22 @@ public:
         if(millis()-last_attempt>5000 && WiFi.status()!=WL_IDLE_STATUS)
         {
             last_attempt = millis();
+            if(debug.level == LOW_LEVEL)
+            {
+                Serial.print("Connecting to ");
+                Serial.print(configuration["ssid"].theBuf);
+                Serial.println("...");
+            }
             WiFi.begin(configuration["ssid"].theBuf, configuration["pass"].theBuf);
 
-            if (WiFi.waitForConnectResult() != WL_CONNECTED && station_mode)
+            if (WiFi.waitForConnectResult() != WL_CONNECTED)
             {
-                if(debug.level == LOW_LEVEL)
-                {
-                    Serial.print("Connecting to ");
-                    Serial.print(configuration["ssid"].theBuf);
-                    Serial.println("...");
-                }
-                debug.log2("AP mode");
+                //debug.log2("AP mode");
                 WiFi.softAP(configuration["dev"].theBuf, "12345678");
                 station_mode = false;
             }
+            else
+              station_mode = true;
         }
 
       }
@@ -388,30 +391,18 @@ public:
            memset(out_buff, '\0', sizeof(out_buff));
         }
 
-        if (!client.connected() || (millis()-last_ack)> (connection_timeout+20000))
+        if (!client.connected() && (millis()-last_ack)> (connection_timeout+20000))
         {
-          client.stop();
-          //Serial.println("### Client has disconnected...");
-
           connection_timeout = 20000;
           last_ack = millis();
 
           if (client.connect(configuration["server"].theBuf, 10001)) {
             Serial.println("connected");
             login();
-            //station_mode = true;
-            //debug.log2("station mode");
-            //WiFi.softAPdisconnect(true);
           }
-          /*else
-          {
-            Serial.println('restarting ...');
-            ESP.reset();
-          }*/
         }
      }
   }
-
 };
 
 #endif

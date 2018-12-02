@@ -4,14 +4,14 @@
 #define LED LED_BUILTIN
 
 Node<int> node;
-SerialLink link;
+SerialLink lnk;
 
 void setup() {
   Serial.begin(38400);
-  link.begin(&Serial);
+  lnk.begin(&Serial);
 
   node.inputs = "led";
-  node.init("node##", &link);
+  node.init("node##", &lnk);
 
   node["led"] >> digitalPin(LED);
 
