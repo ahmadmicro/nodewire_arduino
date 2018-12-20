@@ -89,9 +89,10 @@ private:
  {
    http_server.sendHeader("Access-Control-Allow-Origin", "*");
    http_server.send(200, "text/plain", "success");
-   http_server.client().flush();
-   http_server.client().stop();
-   http_server.stop();
+   //http_server.client().flush();
+   delay(200);
+   //http_server.client().stop();
+   //http_server.stop();
 
    for (int i = 0; i < http_server.args(); i++) {
      if(http_server.argName(i) == "instance") http_server.arg(i).toCharArray(configuration["instance"].theBuf, configuration["instance"].size);
@@ -108,7 +109,7 @@ private:
    wait = 0;
 
    Serial.println('restarting ...');
-   client.stop();
+   //client.stop();
    ESP.reset();
  }
 
@@ -183,7 +184,8 @@ private:
           configuration["pass"] = "12345678";
           configuration["user"]="test2@microscale.net";
           configuration["pwd"]="secret";
-          configuration["dev"]="mygw";
+          configuration["dev"] = "mygw-###";
+          for(int i=0;i<3;i++) configuration["dev"].theBuf[5+i] = (char) random('0', ':');
 
           configuration.dump_json(out_buff);
           debug.log2(out_buff);

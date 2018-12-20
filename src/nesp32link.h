@@ -8,6 +8,8 @@
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 
+#include <nserver.h>
+
 WebServer http_server(80); // https://github.com/zhouhan0126/WebServer-esp32
 
 class Esp32Link: public Link
@@ -92,6 +94,7 @@ private:
    http_server.sendHeader("Access-Control-Allow-Origin", "*");
    http_server.send(200, "text/plain", "success");
    http_server.client().flush();
+   delay(200);
    http_server.client().stop();
    http_server.stop();
 
@@ -113,7 +116,6 @@ private:
    client.stop();
    ESP.restart();
  }
-
 
  void startWeb()
   {
@@ -137,16 +139,38 @@ private:
 
     http_server.on("/",
         []() {
-           IPAddress ip = WiFi.localIP();
-           String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
-           http_server.sendHeader("Access-Control-Allow-Origin", "*");
-           String s = "<html>Hello from NodeWire gateway at <b>";
-           s += ipStr;
-           s += "</b></html>";
+           if(!handleFileRead(http_server.uri()))
+           {
+              IPAddress ip = WiFi.localIP();
+              String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
+              http_server.sendHeader("Access-Control-Allow-Origin", "*");
+              String s = "<html>Hello from NodeWire gateway at <b>";
+              s += ipStr;
+              s += "</b></html>";
 
-           http_server.send(200, "text/html", s);
+              http_server.send(200, "text/html", s);
+           }
          }
     );
+
+    http_server.on("/edit", HTTP_GET, [](){
+      if(!handleFileRead("/edit.htm")) http_server.send(404, "text/plain", "FileNotFound");
+    });
+
+    //create file
+    http_server.on("/edit", HTTP_PUT, handleFileCreate);
+
+    //delete file
+    http_server.on("/edit", HTTP_DELETE, handleFileDelete);
+
+    //first callback is called after the request has ended with all parsed arguments
+    //second callback handles file uploads at that location
+    http_server.on("/edit", HTTP_POST, [](){ http_server.send(200, "text/plain", ""); }, handleFileUpload);
+
+    http_server.onNotFound([](){
+      if(!handleFileRead(http_server.uri()))
+        http_server.send(404, "text/plain", "FileNotFound");
+    });
 
     http_server.begin();
   }
@@ -162,12 +186,12 @@ private:
            configuration.create_object("server instance ssid pass user pwd dev");
            response.parse_as_json();
            configuration["server"] = response["server"];
-           configuration["instance"]=response["instance"];
+           configuration["instance"] = response["instance"];
            configuration["ssid"] = response["ssid"];
            configuration["pass"] = response["pass"];
-           configuration["user"]=response["user"];
-           configuration["pwd"]=response["pwd"];
-           configuration["dev"]=response["dev"];
+           configuration["user"] = response["user"];
+           configuration["pwd"] = response["pwd"];
+           configuration["dev"] = response["dev"];
            debug.log2("opened gw.cfg=>");
            if(debug.level==LOW_LEVEL)
               configuration.println(&Serial);
@@ -180,12 +204,13 @@ private:
           file.create_file("gw.cfg", BUFF_SIZE);
           configuration.create_object("server instance ssid pass user pwd dev");
           configuration["server"] = "dashboard.nodewire.org";
-          configuration["instance"]="1jex2k7cbedg";
+          configuration["instance"] = "1jex2k7cbedg";
           configuration["ssid"] = "ssid";
           configuration["pass"] = "12345678";
-          configuration["user"]="test2@microscale.net";
-          configuration["pwd"]="secret";
-          configuration["dev"]="mygw";
+          configuration["user"] = "test2@microscale.net";
+          configuration["pwd"] = "secret";
+          configuration["dev"] = "mygw-###";
+          for(int i=0;i<3;i++) configuration["dev"].theBuf[5+i] = (char) random('0', ':');
 
           configuration.dump_json(out_buff);
           debug.log2(out_buff);

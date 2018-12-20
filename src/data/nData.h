@@ -99,6 +99,8 @@ public:
     nString dval = query[1];
     int dloc = 0;
 
+    long start = millis();
+
     while(read(dloc++))
     {
       nString vv = (*this)[dfield];
@@ -109,7 +111,11 @@ public:
          return true;
       }
     }
-
+    if(millis()-start>2000)
+    {
+      debug.log2("Data find took a long time->");
+      Serial.println(millis()-start);
+    }
     return false;
   }
 
@@ -181,39 +187,14 @@ public:
 
   void update(nString record)
   {
-    File f = SPIFFS.open((char*)fname, "a+"); // for reeading and appending
-    File g = SPIFFS.open("/tmp", "a+");
-
-    int ll = 0;
-    int size = f.size()/rec_len;
-    if(f && g)
-    {
-       while(ll<size)
-       {
-          f.seek(ll*rec_len, SeekSet);
-          g.seek(ll*rec_len, SeekSet);
-          if(ll==loc)
-            row = record;
-          else
-            f.readBytes(rec_content, rec_len);
-          g.write((const uint8_t*)rec_content, rec_len);
-          ll++;
-       }
-       f.close();
-       g.close();
-
-       //row.splitCSV();
-
-       SPIFFS.remove((char*)fname);
-       SPIFFS.rename("/tmp", (char*)fname);
-    }
-    else
-    {
-      debug.log2("file failed to open");
-    }
+    File f = SPIFFS.open((char*)fname, "r+");
+    f.seek(loc*rec_len, SeekSet);
+    row = record;
+    f.write((const uint8_t*)rec_content, rec_len);
+    f.close();
   }
 
-  void delete_row(nString record)
+  void delete_row()
   {
     File f = SPIFFS.open((char*)fname, "a+"); // for reeading and appending
     File g = SPIFFS.open("/tmp", "a+");
@@ -225,7 +206,6 @@ public:
        while(ll<size)
        {
           f.seek(ll*rec_len, SeekSet);
-          g.seek(ll*rec_len, SeekSet);
           if(ll!=loc)
           {
             f.readBytes(rec_content, rec_len);

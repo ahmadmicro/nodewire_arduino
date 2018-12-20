@@ -270,31 +270,15 @@ public:
     int pp = outputs.find(p);
     if(pp!=-1)
     {
-      if(port==NULL)
-      {
-        port = new Port<PVT>(&address, p, &_link->response, NULL);
-        port->handler.get_handler = &read_handlers[pp];
-      }
-      else
-      {
-        port->portname = p;
-        port->handler.get_handler = &read_handlers[pp];
-      }
+      port = new Port<PVT>(&address, p, &_link->response, NULL);
+      port->handler.get_handler = &read_handlers[pp];
       return *port;
     }
     else if(inputs.find(p)!=-1)
     {
       pp = inputs.find(p);
-      if(port==NULL)
-      {
-        port = new Port<PVT>(&address, p, &_link->response, &portvalues[inputs.find(p)]);
-        port->handler.set_handler = &set_handlers[pp];
-      }
-      else
-      {
-        port->portname = p;
-        port->handler.set_handler = &set_handlers[pp];
-      }
+      port = new Port<PVT>(&address, p, &_link->response, &portvalues[inputs.find(p)]);
+      port->handler.set_handler = &set_handlers[pp];
       return *port;
     }
     else

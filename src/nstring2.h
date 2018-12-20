@@ -8,7 +8,7 @@
 #include <avr/dtostrf.h>
 #endif
 
-#if  defined (STM32_HIGH_DENSITY)
+#if defined (STM32_HIGH_DENSITY)
 #include <itoa.h>
 #include <avr/dtostrf.h>
 #endif
