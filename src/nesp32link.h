@@ -172,6 +172,14 @@ private:
         http_server.send(404, "text/plain", "FileNotFound");
     });
 
+    http_server.on("/cmd", HTTP_GET, [](){
+      
+    });
+
+    http_server.on("/cmd", HTTP_POST, [](){
+
+    });
+
     http_server.begin();
   }
 

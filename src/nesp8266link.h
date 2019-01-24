@@ -380,7 +380,8 @@ public:
            response = "cp keepalive ";
            response+=configuration["instance"];
            client.println(out_buff);
-           Serial.println(out_buff);
+           if(debug.level == LOW_LEVEL)
+              Serial.println(out_buff);
            memset(out_buff, '\0', sizeof(out_buff));
         }
 
