@@ -196,8 +196,7 @@ Detecting and responding to inputs
         node["value"] << outputValue(analogRead(A0));
 
         node.timer(1000, [](){
-            if(node["start"]==1)
-                node["value"] = analogRead(A0);
+            node["value"] = analogRead(A0);
         });
     }
 
