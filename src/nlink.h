@@ -6,7 +6,7 @@
 #ifdef ESP8266
   #define BUFF_SIZE 1024
 #elif defined ESP32
-  #define BUFF_SIZE 1024
+  #define BUFF_SIZE 2048
 #elif defined (__STM32F1__)
   #define BUFF_SIZE 100
 #elif  defined (STM32_HIGH_DENSITY)
@@ -72,13 +72,13 @@ class Link
             }
             if(message["address"]==*nodename || message["address"]=="any")
             {
-               message["sender"].trim();
+              message["sender"].trim();
               return true;
             }
             else
             {
-                resetmessage();
-                return false;
+              resetmessage();
+              return false;
             }
         #else
             if(len<3)
@@ -88,13 +88,13 @@ class Link
             }
             if(message[0]==*nodename || message[0]=="any")
             {
-               message[len-1].trim();
+              message[len-1].trim();
               return true;
             }
             else
             {
-                resetmessage();
-                return false;
+              resetmessage();
+              return false;
             }
         #endif
       }

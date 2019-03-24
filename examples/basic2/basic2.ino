@@ -1,13 +1,21 @@
 #include <nnode.h>
-#include <nesp8266link.h>
+#include <nsim800link.h>
+#include <SoftwareSerial.h>
 
 #define LED LED_BUILTIN
 
 Node<int> node;
-Esp8266Link lnk;
+Sim800Link lnk;
+//SoftwareSerial modemSerial = SoftwareSerial(14,12); // RX, TX
+SoftwareSerial modemSerial = SoftwareSerial(12,14); // RX, TX
 
 void setup() {
-  lnk.begin();
+  Serial.begin(38400);
+  modemSerial.begin(9600);
+  debug.setOutput(&Serial);
+  debug.level = LOW_LEVEL;
+  
+  lnk.begin(&modemSerial);
 
   node.inputs = "led";
   node.init("node##", &lnk);

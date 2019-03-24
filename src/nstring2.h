@@ -212,6 +212,24 @@ class nString{
         }
       }
 
+      /*bool createBuffer(int l)
+      {
+        if(theBuf==NULL) 
+        {
+          theBuf = new char[l];
+          size = l;
+          type = n_String;
+          should_dispose = true;
+
+          capacity = 0;
+          len = 0;
+          elements = NULL;
+          keys = NULL;
+          return true;
+        }
+        return false;
+      }*/
+
       nString(double buff)
       {
         theBuf = new char[size_double];
@@ -319,14 +337,13 @@ class nString{
       {
         if(theBuf==NULL)
         {
-          //Serial.println("EMPTY");
           theBuf = new char[15];
           should_dispose = true;
           size = 15;
           clearBuffer();
         }
 
-        ltoa(op, theBuf, 15);
+        ltoa(op, theBuf, 10);
         type = n_Int;
         return *this;
       }
@@ -341,6 +358,7 @@ class nString{
           clearBuffer();
         }
         dtostrf(op, size-1, precision, theBuf);
+        trim();
         type = n_Float;
         return *this;
       }

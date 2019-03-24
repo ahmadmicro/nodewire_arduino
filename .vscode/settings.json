@@ -11,6 +11,8 @@
         "array": "cpp",
         "system_error": "cpp",
         "*.tcc": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp"
     }
 }
