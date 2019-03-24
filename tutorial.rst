@@ -60,7 +60,7 @@ In order for an output port to be readable, you must provide a source for its va
 This can be a variable, an expression or a function call. All you have to do is enclose the source
 in the "outputValue" macro.
 
-,, code-block:: c++
+.. code-block:: c++
 
 
     #include <lnode.h>
