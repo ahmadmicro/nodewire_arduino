@@ -13,8 +13,6 @@ This example is functional but actually does nothing as we have not defined any 
     #include <lnode.h>
     #include <nseriallink.h>
 
-    #define LED LED_BUILTIN
-
     Node<int> node;
     SerialLink lnk;
 
@@ -39,8 +37,6 @@ Note that you will be able to set and read the input port values. But the output
 
     #include <lnode.h>
     #include <nseriallink.h>
-
-    #define LED LED_BUILTIN
 
     Node<int> node;
     SerialLink lnk;
@@ -69,8 +65,6 @@ in the "outputValue" macro.
 
     #include <lnode.h>
     #include <nseriallink.h>
-
-    #define LED LED_BUILTIN
 
     Node<int> node;
     SerialLink lnk;
@@ -107,8 +101,6 @@ You have to start the timer before it will become active.
 
     #include <lnode.h>
     #include <nseriallink.h>
-
-    #define LED LED_BUILTIN
 
     Node<int> node;
     SerialLink lnk;
@@ -150,8 +142,6 @@ Detecting and responding to inputs
     #include <nnode.h>
     #include <nseriallink.h>
 
-    #define LED LED_BUILTIN
-
     Node<int> node;
     SerialLink lnk;
 
@@ -184,8 +174,6 @@ Detecting and responding to inputs
 
     #include <nnode.h>
     #include <nseriallink.h>
-
-    #define LED LED_BUILTIN
 
     Node<int> node;
     SerialLink lnk;
