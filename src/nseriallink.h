@@ -30,6 +30,7 @@ public:
       whenlastreceived = millis();
 
       if (inChar == '\n' || index >= (sizeof(in_buff)-2)) {
+        debug.log2(in_buff);
         messageComplete = true;
         in_buff[index]=0;
         index = 0;
@@ -54,6 +55,7 @@ public:
         whenlastreceived = millis();
         return;//not tested. detect collision
       }*/
+      debug.log2(out_buff);
       memset(out_buff, '\0', sizeof(out_buff));
     }
   }
