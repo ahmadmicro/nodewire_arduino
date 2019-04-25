@@ -13,6 +13,7 @@
         "*.tcc": "cpp",
         "fstream": "cpp",
         "vector": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "cmath": "cpp"
     }
 }

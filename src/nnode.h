@@ -274,6 +274,12 @@ public:
   Port<PVT>& operator[](const char* p)
   {
     int pp = outputs.find(p);
+    if(port!=NULL)
+    {
+      delete port;
+      port = NULL;
+    }
+    
     if(pp!=-1)
     {
       if(strlen(_link->response.theBuf)!=0) _link->checkSend();

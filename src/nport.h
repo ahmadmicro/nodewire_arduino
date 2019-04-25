@@ -18,6 +18,8 @@ class Port
    bool remote = false;
    nString cmd;
    PVT* val;
+
+   bool disposable = false;
    
  public:
    const char* portname;
@@ -31,7 +33,17 @@ class Port
      if(pval!=NULL)
       val = pval;
      else
-      val = new PVT();
+     {
+       val = new PVT();
+       disposable = true;
+     }
+      
+   }
+
+   ~Port()
+   {
+     if(disposable)
+        delete val;
    }
 
    void set_target(nString& addr)

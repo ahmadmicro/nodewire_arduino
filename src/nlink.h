@@ -14,7 +14,7 @@
 #elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
   #define BUFF_SIZE 230
 #else
-  #define BUFF_SIZE 70
+  #define BUFF_SIZE 90
 #endif
 
 class Link

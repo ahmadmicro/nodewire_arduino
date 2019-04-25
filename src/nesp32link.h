@@ -27,6 +27,7 @@ private:
   int wait;
   bool station_mode = false;
   long chk_wifi;
+  bool waiting_config = false;
 
   char _config[BUFF_SIZE]; // server instance ssid pass user pwd dev
   wifi_sta_list_t stationList;
@@ -53,20 +54,29 @@ public:
 private:
   void login()
   {
-     response = "cp Gateway user=";
-     response += configuration["user"]; response += " pwd=";
-     response += configuration["pwd"]; response += " ";
-     response += configuration["instance"];
-     client.println(response.theBuf);
-     debug.log2(response.theBuf);
-     memset(out_buff, '\0', BUFF_SIZE);
+    if(configuration["token"]=="none")
+    {
+      response = "cp Gateway id=";
+      response += configuration["uuid"];
+      waiting_config = true;
+    }
+    else
+    {
+      response = "cp Gateway key=";
+      response += configuration["token"]; response += " ";
+      response += configuration["uuid"]; 
+    }
+     
+    client.println(response.theBuf);
+    debug.log2(response.theBuf);
+    memset(out_buff, '\0', BUFF_SIZE);
   }
 
   /* OTA */
   void startOTA()
   {
     ArduinoOTA.setHostname(configuration["dev"].theBuf);
-    ArduinoOTA.setPassword((const char *)configuration["pwd"].theBuf);
+    //ArduinoOTA.setPassword((const char *)configuration["ota"].theBuf);
     ArduinoOTA.onStart([]() {
       Serial.println("Start");
     });
@@ -102,8 +112,8 @@ private:
      if(http_server.argName(i) == "instance") http_server.arg(i).toCharArray(configuration["instance"].theBuf, configuration["instance"].size);
      else if(http_server.argName(i) == "ssid") http_server.arg(i).toCharArray(configuration["ssid"].theBuf, configuration["ssid"].size);
      else if(http_server.argName(i) == "password") http_server.arg(i).toCharArray(configuration["pass"].theBuf, configuration["pass"].size);
-     else if(http_server.argName(i) == "user") http_server.arg(i).toCharArray(configuration["user"].theBuf, configuration["user"].size);
-     else if(http_server.argName(i) == "pwd") http_server.arg(i).toCharArray(configuration["pwd"].theBuf, configuration["pwd"].size);
+     //else if(http_server.argName(i) == "user") http_server.arg(i).toCharArray(configuration["user"].theBuf, configuration["user"].size);
+     //else if(http_server.argName(i) == "pwd") http_server.arg(i).toCharArray(configuration["pwd"].theBuf, configuration["pwd"].size);
      else if(http_server.argName(i) == "devname") http_server.arg(i).toCharArray(configuration["dev"].theBuf, configuration["dev"].size);
      else if(http_server.argName(i) == "server") http_server.arg(i).toCharArray(configuration["server"].theBuf, configuration["server"].size);
    }
@@ -138,19 +148,49 @@ private:
     );
 
     http_server.on("/",
-        []() {
+        [this]() {
            if(!handleFileRead(http_server.uri()))
            {
               IPAddress ip = WiFi.localIP();
               String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
               http_server.sendHeader("Access-Control-Allow-Origin", "*");
-              String s = "<html>Hello from NodeWire gateway at <b>";
+              String s =  "<html>                       \
+              <head>   \
+                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">   \
+              </head>     \
+              Hello from NodeWire gateway at <b>";
               s += ipStr;
-              s += "</b></html>";
+
+              s+="<p>";
+              s+=this->configuration["uuid"].theBuf;
+              s+="<p>";
+
+              s += "</b><a href=\"/ap\">connected to AP</a></html>";
 
               http_server.send(200, "text/html", s);
            }
          }
+    );
+
+    http_server.on("/ap",
+        [&]() {
+          String response = "     \
+            <html>                       \
+              <head>      \
+                <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">   \
+              </head>                                 \
+              <form method=\"get\" action=\"/config\">     \
+                SSID:<br>                                \
+                <input type=\"text\" name=\"ssid\" value=\"\"><br>    \
+                PASSKEY:<br>                                             \
+                <input type=\"text\" name=\"password\" value=\"\"><br><br>   \
+                <input type=\"submit\" value=\"Submit\">                     \
+              </form>                                          \
+              </html>                                             \
+          ";
+
+           http_server.send(200, "text/html", response);
+        }
     );
 
     http_server.on("/edit", HTTP_GET, [](){
@@ -183,24 +223,49 @@ private:
     http_server.begin();
   }
 
+  void GenerateID(char* GUID)
+  {
+      int t = 0;
+      char *szTemp = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+      char *szHex = "0123456789ABCDEF-";
+      int nLen = strlen (szTemp);
+
+      for (t=0; t<nLen+1; t++)
+      {
+          int r = random(0, 16);
+          char c = ' ';   
+
+          switch (szTemp[t])
+          {
+              case 'x' : { c = szHex [r]; } break;
+              case 'y' : { c = szHex [r & 0x03 | 0x08]; } break;
+              case '-' : { c = '-'; } break;
+              case '4' : { c = '4'; } break;
+          }
+
+          GUID[t] = ( t < nLen ) ? c : 0x00;
+      }
+  }
+
   void readEM()
    {
        EEPROM_File file;
        if(file.no_files()==-1) file.create_FS(4);
-       if(file.open("gw.cfg", response))
+       if(file.open("gw1.cfg", response))
        {
-           debug.log2("openning gw.cfg");
+           debug.log2("openning gw1.cfg");
            configuration.collapse();
-           configuration.create_object("server instance ssid pass user pwd dev");
+           configuration.create_object("server instance ssid pass uuid token dev");
            response.parse_as_json();
            configuration["server"] = response["server"];
            configuration["instance"] = response["instance"];
            configuration["ssid"] = response["ssid"];
            configuration["pass"] = response["pass"];
-           configuration["user"] = response["user"];
-           configuration["pwd"] = response["pwd"];
+           configuration["uuid"] = response["uuid"];
+           configuration["token"] = response["token"];
            configuration["dev"] = response["dev"];
-           debug.log2("opened gw.cfg=>");
+           debug.log2("opened gw1.cfg=>");
+           debug.log(configuration["uuid"].theBuf);
            if(debug.level==LOW_LEVEL)
               configuration.println(&Serial);
            response.collapse();
@@ -208,21 +273,22 @@ private:
        }
        else
        {
-          debug.log2("creating gw.cfg");
-          file.create_file("gw.cfg", BUFF_SIZE);
-          configuration.create_object("server instance ssid pass user pwd dev");
+          debug.log2("creating gw1.cfg");
+          file.create_file("gw1.cfg", BUFF_SIZE);
+          configuration.create_object("server instance ssid pass uuid token dev");
           configuration["server"] = "dashboard.nodewire.org";
           configuration["instance"] = "1jex2k7cbedg";
           configuration["ssid"] = "ssid";
           configuration["pass"] = "12345678";
-          configuration["user"] = "test2@microscale.net";
-          configuration["pwd"] = "secret";
+          configuration["uuid"] = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+          configuration["token"] = "none";
           configuration["dev"] = "mygw-###";
           for(int i=0;i<3;i++) configuration["dev"].theBuf[5+i] = (char) random('0', ':');
-
+          GenerateID(configuration["uuid"].theBuf);
+          debug.log(configuration["uuid"].theBuf);
           configuration.dump_json(out_buff);
           debug.log2(out_buff);
-          file.save("gw.cfg", response);
+          file.save("gw1.cfg", response);
           memset(out_buff, '\0', BUFF_SIZE);
        }
    }
@@ -232,11 +298,11 @@ private:
      EEPROM_File file;
      configuration.dump_json(out_buff);
      debug.log2(out_buff);
-     if(!file.save("gw.cfg", response))
+     if(!file.save("gw1.cfg", response))
      {
          debug.log("Re-creating File EEMPROM System...");
          file.create_FS(5);
-         if(file.save("gw.cfg", response))
+         if(file.save("gw1.cfg", response))
             debug.log("success");
      }
      memset(out_buff, '\0', BUFF_SIZE);
@@ -307,7 +373,8 @@ public:
     debug.log2("");
     debug.log2("WiFi connected");
     debug.log2("IP address: ");
-    //debug.log2(WiFi.localIP());
+    if(debug.level == LOW_LEVEL)
+      Serial.println(WiFi.localIP());
     //if(station_mode)
     startOTA();
     startWeb();
@@ -344,6 +411,25 @@ public:
         if (!suspended && c == '\n' || index >= BUFF_SIZE-1) {
           if(index !=0)
           {
+            if(waiting_config && message.index(" gack ")!=-1)
+            {
+              waiting_config = false;
+              int pos = message.index(" ");
+              nString conf = message.head(pos);
+              conf.split(':');
+              configuration["instance"] = conf[0];
+              configuration["token"] = conf[1];
+              writeEM();
+              ESP.restart();
+            }
+            else if(configuration["token"]!="none" && message.index(" authfail ")!=-1)
+            {
+              debug.log2("We have been deleted");
+              configuration["token"] = "none";
+              writeEM();
+            }
+            else
+            {
               int pos = message.index(configuration["instance"]);
               if(pos==0)
               {
@@ -356,7 +442,8 @@ public:
               index = 0;
               last_ping = millis();
               last_ack = last_ping;
-              return;
+            }
+            return;
           }
         }
         else

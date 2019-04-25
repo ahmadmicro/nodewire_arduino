@@ -1,7 +1,8 @@
-#include <nstring2.h>
 #include <nEEPROMFile.h>
-#include <nseriallink.h>
+#include <nnode.h>
 #include <nesp8266link.h>
+#include <nseriallink.h>
+
 
 Esp8266Link e_link;
 SerialLink s_link;
