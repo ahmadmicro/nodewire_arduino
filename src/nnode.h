@@ -72,6 +72,7 @@ private:
   bool* timer_enabled = NULL;
 
   char _name[12];
+  char _type[12];
   //char _id[12];
 
   bool announcing = true;
@@ -83,6 +84,7 @@ public:
   nString inputs;
   nString outputs;
   nString address;
+  nString type;
   nString id;
 
   setHandler set_portvalue = NULL;
@@ -96,6 +98,7 @@ public:
     timer_enabled = new bool[MAX_TIMERS];
 
     //id.setBuffer(_id, sizeof(_id));
+    type.setBuffer(_type, sizeof(_type));
   }
 
   ~Node()
@@ -179,6 +182,15 @@ public:
 
     address.setBuffer(_name, sizeof(_name));
     address = nodename;
+    int loc = nodename.index("#");
+    if(loc!=-1)
+    {
+      type = nodename.head(loc);
+    }
+    else
+    {
+      type = nodename;
+    }
     readConfig();
 
     with_props = false;
@@ -188,6 +200,15 @@ public:
   {
     address.setBuffer(_name, sizeof(_name));
     address = nodename;
+    int loc = nodename.index("#");
+    if(loc!=-1)
+    {
+      type = nodename.head(loc);
+    }
+    else
+    {
+      type = nodename;
+    }
     readConfig();
 
     inputs.split(' ');
@@ -238,10 +259,10 @@ public:
   {
     if(no_timers<=2)
     {
-        timer_handlers[no_timers] = handler;
-        timer_intervals[no_timers] = duration;
-        timer_enabled[no_timers] = false;
-        no_timers++;
+      timer_handlers[no_timers] = handler;
+      timer_intervals[no_timers] = duration;
+      timer_enabled[no_timers] = false;
+      no_timers++;
     }
   }
 
@@ -360,6 +381,10 @@ public:
         {
           _link->response = _link->message["sender"] + " id " + id + " " + address;
         }
+        else if(_link->message["port"]=="type")
+        {
+          _link->response = _link->message["sender"] + " type " + type + " " + address;
+        }
         else if(_link->message["port"]=="memory")
         {
           _link->response = _link->message["sender"] + " memory " + _freeRam() + " " + address;
@@ -457,7 +482,7 @@ public:
             for(int i=0;i<_link->message["value"].size;i++)
                if(_link->message["value"].theBuf[i]=='\'') _link->message["value"].theBuf[i]='\"';
             file.save("script", _link->message["value"]);
-            #ifdef ESP32 || ESP8266
+            #if defined(ESP32) || defined(ESP8266)
              ESP.restart();
             #endif
         }
@@ -470,13 +495,13 @@ public:
             EEPROM_File file;
             file.format();
             file.create_FS(NO_EEPROM_FILES);
-            #ifdef ESP32 || ESP8266
+            #if defined(ESP32) || defined(ESP8266)
              ESP.restart();
             #endif
         }
         else if(_link->message["port"]=="restart")
         {
-            #ifdef ESP32 || ESP8266
+            #if defined(ESP32) || defined(ESP8266)
              ESP.restart();
             #endif
         }

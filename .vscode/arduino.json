@@ -1,5 +1,5 @@
 {
-    "board": "espressif:esp32:nodemcu-32s",
+    "board": "esp8266:esp8266:huzzah",
     "port": "COM3",
-    "configuration": "FlashFreq=80,UploadSpeed=921600"
+    "configuration": "CpuFrequency=80,FlashSize=4M1M,LwIPVariant=v2mss536,Debug=Disabled,DebugLevel=None____,FlashErase=none,UploadSpeed=115200"
 }

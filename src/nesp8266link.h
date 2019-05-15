@@ -118,7 +118,7 @@ private:
    auth_done = false;
    wait = 0;
 
-   Serial.println('restarting ...');
+   Serial.println("restarting ...");
    //client.stop();
    ESP.reset();
  }
@@ -193,8 +193,8 @@ private:
   void GenerateID(char* GUID)
   {
       int t = 0;
-      char *szTemp = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
-      char *szHex = "0123456789ABCDEF-";
+      const char *szTemp = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
+      const char *szHex = "0123456789ABCDEF-";
       int nLen = strlen (szTemp);
 
       for (t=0; t<nLen+1; t++)

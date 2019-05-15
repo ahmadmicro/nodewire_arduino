@@ -444,7 +444,7 @@ class nString{
       {
         if(strcmp(theBuf, op.theBuf)==0) return true; else return false;
       }
-      bool operator==(char* op)
+      bool operator==(const char* op)
       {
         if(strcmp(theBuf, op)==0 && type!=n_Array && type!=n_Object) return true; else return false;
       }
@@ -454,7 +454,7 @@ class nString{
         if(strcmp(theBuf, op.theBuf)==0) return false; else return true;
       }
 
-      bool operator!=(char* op)
+      bool operator!=(const char* op)
       {
         if(type==n_Object || type==n_Array) return true;
         if(strcmp(theBuf, op)==0) return false; else return true;

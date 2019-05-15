@@ -301,7 +301,7 @@ public:
     }
   }
 
-#if  defined(ESP8266) || defined(ESP32)
+#if defined(ESP8266) || defined(ESP32)
   template <class NVT>
   Remote<NVT>& get_node(char* nodename)
   {
@@ -456,7 +456,7 @@ public:
             for(int i=0;i<_link->message[3].size;i++)
                if(_link->message[3].theBuf[i]=='\'') _link->message[3].theBuf[i]='\"';
             file.save("script", _link->message[3]);
-            #ifdef ESP32 || ESP8266
+            #if defined(ESP8266) || defined(ESP32)
              ESP.restart();
             #endif
         }
@@ -469,13 +469,13 @@ public:
             EEPROM_File file;
             file.format();
             file.create_FS(NO_EEPROM_FILES);
-            #ifdef ESP32 || ESP8266
+            #if defined(ESP8266) || defined(ESP32)
              ESP.restart();
             #endif
         }
         else if(_link->message[2]=="restart")
         {
-            #ifdef ESP32 || ESP8266
+            #if defined(ESP8266) || defined(ESP32)
              ESP.restart();
             #endif
         }
