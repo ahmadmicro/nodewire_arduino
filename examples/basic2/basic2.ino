@@ -7,6 +7,9 @@ Node<int> node;
 Esp8266Link lnk;
 
 void setup() {
+  Serial.begin(38400);
+  debug.setOutput(&Serial);
+  debug.level = LOW_LEVEL;
   lnk.begin();
 
   node.inputs = "led";

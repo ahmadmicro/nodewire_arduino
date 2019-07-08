@@ -52,6 +52,8 @@ class A9Modem
                 if (inChar == '\n' || index >= (sizeof(in_buff)-2)) {
                     in_buff[index]=0;
                     index = 0;
+                    //Serial.print("received:");
+                    //Serial.println(in_buff);
                     if(strncmp(in_buff, "any portvalue incoming", 22) ==0 && incoming!=NULL)
                     {
                         char* start = in_buff+23;

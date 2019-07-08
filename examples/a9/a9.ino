@@ -1,13 +1,18 @@
 #include <na9.h>
+#include <SoftwareSerial.h>
 
 A9Modem modem;
+SoftwareSerial m(2,3);
 
 void setup() {
   Serial.begin(38400);
-  modem.begin(&Serial);
+  m.begin(38400);
+  modem.begin(&m);
 
-  modem.call("08012345678");
+  delay(10000);
   modem.send("08012345678", "this is my message");
+  delay(10000);
+  modem.call("08012345678");
 
   modem.on_incoming([](const char* number){
     Serial.print("incoming call:");

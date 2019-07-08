@@ -312,6 +312,8 @@ and this
 
   nString greeting = "hello world";
 
+the last two methods will create a managed string.
+
 Copying
 -------
 You can copy into a string by using the assignment operation.
@@ -324,8 +326,7 @@ No new memory is allocated in this process unless if the nString has not previou
    void setup()
    {
      Serial.begin(38400);
-     char buffer[100];
-     nString greeting(buffer, sizeof(buffer));
+     nString greeting;
 
      greeting = "hello world";
      greeting.println(&Serial);
@@ -410,8 +411,7 @@ You can convert an nString to an array either to splitting the string in its buf
 
 .. code-block:: c++
 
-    char buffer[100];
-    nString greeting(buffer, sizeof(buffer));
+    nString greeting;
 
     greeting = "these will be the elements";
     greeting.split(' ');
@@ -478,8 +478,7 @@ Example:
 
 .. code-block:: c++
 
-    char buffer[100];
-    nString obj(buffer, sizeof(buffer));
+    nString obj;
     obj.create_object("name age department");
     obj["name"] = "Ahmad";
     obj["age"] = 35;
@@ -491,8 +490,7 @@ This can also be achieved by starting with an array:
 
 .. code-block:: c++
 
-    char buffer[100];
-    nString obj(buffer, sizeof(buffer));
+    nString obj;
     obj = "Ahmad 35 software";
     obj.split(' ');
     obj.convert_object("name age department");

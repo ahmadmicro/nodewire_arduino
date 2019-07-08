@@ -121,8 +121,9 @@ private:
    writeEM();
    auth_done = false;
    wait = 0;
-
-   Serial.println("restarting ...");
+  
+   if(debug.level==LOW_LEVEL)
+     Serial.println("restarting ...");
    client.stop();
    ESP.restart();
  }
@@ -355,8 +356,11 @@ public:
             WiFi.softAP(configuration["dev"].theBuf, "12345678");// configuration["pwd"].theBuf);
             debug.log2("access point");
             debug.log2(configuration["dev"].theBuf);
-            Serial.println(WiFi.softAPIP());
-            Serial.println(WiFi.status());
+            if(debug.level==LOW_LEVEL)
+            {
+              Serial.println(WiFi.softAPIP());
+              Serial.println(WiFi.status());
+            }
 
             if(station_mode)
                 startOTA();
@@ -507,7 +511,6 @@ public:
            response = "cp keepalive ";
            response+=configuration["instance"];
            client.println(out_buff);
-           Serial.println(out_buff);
            memset(out_buff, '\0', sizeof(out_buff));
         }
 
@@ -517,7 +520,8 @@ public:
           last_ack = millis();
 
           if (client.connect(configuration["server"].theBuf, 10001)) {
-            Serial.println("connected");
+            if(debug.level==LOW_LEVEL)
+              Serial.println("connected");
             login();
           }
         }

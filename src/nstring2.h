@@ -407,6 +407,7 @@ class nString{
         type = n_String;
         return *this;
       }
+      
       nString operator+=(const double op)
       {
         char temp[size_double]; dtostrf(op, size-1, precision, temp);
@@ -433,6 +434,7 @@ class nString{
         strcat(theBuf, temp);
         return *this;
       }
+
       nString operator+(const double op)
       {
         char temp[size_double]; dtostrf(op, size-1, precision, temp);
@@ -656,7 +658,7 @@ class nString{
 
       void pop(int location)
       {
-          if(len!=0)
+          if(len!=0 && location>=0 && location<len)
           {
               if(len!=1)
               {
@@ -665,7 +667,7 @@ class nString{
 
                   for(long i = 0; i<size-(target-theBuf);i++)
                       target[i] = source[i];
-                  size_t sz = elements[0]->size;
+                  //size_t sz = elements[0]->size;
                   for(int i=location+1;i<len-1;i++)
                   {
                       elements[i]->theBuf += (elements[i]->size-elements[location]->size);
@@ -878,7 +880,7 @@ class nString{
       int splitPT(char sep=' ')
       {
         char separator='\0';
-        char opposite;
+        //char opposite;
         bool looking = true;
 
         delete_elements();
@@ -1015,9 +1017,10 @@ class nString{
       void parse_as_json() // converts n_string to n_Object
       {
         trim();
-        if(theBuf[0]=='\"')
+        if(theBuf[0]=='\"' || theBuf[0]=='\'')
         {
           //string
+          type = n_String;
           removeends();
         }
         else if(theBuf[0]=='[')
@@ -1061,20 +1064,19 @@ class nString{
             elements[i]->collapse();
             elements[i]->parse_as_json();
           }
-
           type  = n_Object;
         }
         else
         {
           type = n_Int;
           for(int i = 0; i<strlen(theBuf);i++)
+          {
             if(theBuf[i]=='.')
             {
               type = n_Float; break;
             }
-
+          }
         }
-
       }
 
       void println(Stream* serial)
