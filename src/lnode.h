@@ -183,8 +183,9 @@ public:
 
     with_props = false;
 
-    if(_freeRam()<800)
+    if(_freeRam()<700)
     {
+        Serial.println(_freeRam());
         debug.log("Memory LoW!\nHalting");
         while(1);
     }

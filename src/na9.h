@@ -11,6 +11,7 @@ class A9Modem
         char in_buff[200];
         A9MsgHandler sms = NULL;
         A9CallHandler incoming = NULL;
+        A9CallHandler cell = NULL;
         int index = 0;
     public:
         void begin(Stream* serial)
@@ -29,6 +30,12 @@ class A9Modem
             sprintf(buffer, "a9 set sms \"%s:%s\" ", number, message);
             _serial->println(buffer);
         }
+        void location()
+        {
+            char buffer[80];
+            sprintf(buffer, "a9 set location 1");
+            _serial->println(buffer);
+        }
         void answer()
         {
             _serial->println("a9 set answer 1 ");
@@ -37,6 +44,11 @@ class A9Modem
         void on_incoming(A9CallHandler handler)
         {
             incoming = handler;
+        }
+
+        void on_cell(A9CallHandler handler)
+        {
+            cell = handler;
         }
 
         void on_message(A9MsgHandler handler)
@@ -71,6 +83,14 @@ class A9Modem
                         end = strstr(message, "\"} a9");
                         *end = 0;
                         sms(number, message);
+                    }
+
+                    if(strncmp(in_buff, "any portvalue cell", 18) ==0 && cell!=NULL)
+                    {
+                        char* cells = in_buff+20;
+                        char* end = strchr(cells, ']')+1;
+                        *end = 0;
+                        cell(cells);
                     }
                      
                     return;

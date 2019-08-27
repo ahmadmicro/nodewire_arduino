@@ -18,9 +18,9 @@
     return (int) system_get_free_heap_size();
   }
 #elif defined (__STM32F1__)
-  int _freeRam (){ return 0;}
+  int _freeRam (){ return 200;}
 #elif defined (STM32_HIGH_DENSITY)
-  int _freeRam (){ return 0;}
+  int _freeRam (){ return 200;}
 #elif defined ESP32
   #include <tr1/functional>
   int _freeRam()
