@@ -9,6 +9,8 @@ SerialLink s_link;
 
 void setup() {
   Serial.begin(38400);
+  debug.setOutput(&Serial);
+  debug.level = LOW_LEVEL;
 
   s_link.begin(&Serial);
   e_link.begin();

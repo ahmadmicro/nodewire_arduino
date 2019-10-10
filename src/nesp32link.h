@@ -462,7 +462,7 @@ public:
      if(station_mode)
         ArduinoOTA.handle();
      if (!wificonnected() && (station_mode || millis()-last_attempt>30000)) {
-        if(millis()-last_attempt>5000 && WiFi.status()!=WL_IDLE_STATUS)
+        if(millis()-last_attempt>20000 && configuration["ssid"]!="ssid" && WiFi.status()!=WL_IDLE_STATUS)
         {
             last_attempt = millis();
             if(debug.level == LOW_LEVEL)

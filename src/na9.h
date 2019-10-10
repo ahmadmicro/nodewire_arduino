@@ -87,7 +87,7 @@ class A9Modem
 
                     if(strncmp(in_buff, "any portvalue cell", 18) ==0 && cell!=NULL)
                     {
-                        char* cells = in_buff+20;
+                        char* cells = in_buff+19;
                         char* end = strchr(cells, ']')+1;
                         *end = 0;
                         cell(cells);
