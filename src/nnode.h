@@ -87,6 +87,8 @@ public:
   nString type;
   nString id;
 
+  int con_state = 0;
+
   setHandler set_portvalue = NULL;
   getHandler get_portvalue = NULL;
 
@@ -368,9 +370,13 @@ public:
     {
       if(_link->message["command"]=="ack") {
         announcing = false;
+        con_state = 1;
       }
       else if(_link->message["command"]=="not_registered")
+      {
         announcing = false;
+        con_state = 2;
+      }
       else if(_link->message["command"]=="get")
       {
         if(_link->message["port"]=="name")
@@ -530,6 +536,7 @@ public:
       else if(_link->message["command"]=="ping")
       {
         announcing = true;
+        con_state = 0;
         last_announced = millis() - 5000;
       }
 
