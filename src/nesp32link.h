@@ -514,7 +514,7 @@ public:
            memset(out_buff, '\0', sizeof(out_buff));
         }
 
-        if (!client.connected() && (millis()-last_ack)> (connection_timeout+20000))
+        if (!client.connected() || (millis()-last_ack)> (connection_timeout+20000))
         {
           connection_timeout = 20000;
           last_ack = millis();

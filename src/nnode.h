@@ -58,6 +58,8 @@ private:
   readHandler* read_handlers = NULL;
   timerHandler* timer_handlers = NULL;
 
+  timerHandler connected = NULL;
+
   PVT* portvalues=NULL;
   Port<PVT>* port=NULL;
   void* remote = NULL;
@@ -268,6 +270,11 @@ public:
     }
   }
 
+  void on_connected(timerHandler conn)
+  {
+    connected = conn;
+  }
+
   void update_time(int t, long duration)
   {
     if(t<no_timers)
@@ -371,6 +378,8 @@ public:
       if(_link->message["command"]=="ack") {
         announcing = false;
         con_state = 1;
+
+        if(connected!=NULL) connected();
       }
       else if(_link->message["command"]=="not_registered")
       {
