@@ -537,8 +537,8 @@ public:
       }
       else if(_link->message["command"]=="portvalue" && remote != NULL && remote_address==_link->message["sender"])
       {
-          debug.log("handing remote event");
           #if  defined(ESP8266) || defined(ESP32)
+          debug.log("handing remote event");
           remote_handle(_link->message["port"], _link->message["value"]);
           #endif
       }

@@ -223,7 +223,7 @@ Multiple port example
 
     node.init("sco", &link);
 
-    node.["ignition"] >> [](nString val, nString sender) {
+    node["ignition"] >> [](nString val, nString sender) {
       digitalWrite(IGNITION,(int)val);
     };
 
@@ -239,7 +239,7 @@ Multiple port example
       Serial.println("tock");
     });
 
-    node.["mains"] << []() -> nString {
+    node["mains"] << []() -> nString {
       return digitalRead(MAINS);
     };
 
@@ -521,10 +521,9 @@ To convert an nString Object to a JSON string:
 
 .. code-block:: c++
 
-    char buff[50];//where we will store the json string
     nString list = "one two three four";
     list.split(' '); //create array
-    list.dump_json(buff);//convert to json
+    list.toString(buff);//convert to json string
     Serial.println(buff);
 
 

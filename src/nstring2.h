@@ -64,6 +64,11 @@ class nString{
 
       ~nString()
       {
+        dispose();
+      }
+
+      void dispose()
+      {
         if(should_dispose==true && theBuf!=NULL) {
           delete[] theBuf;
           theBuf = NULL;
@@ -950,6 +955,18 @@ class nString{
           }
           delete_elements();
           type = n_String;
+      }
+
+      void toString(int ss=100)
+      {
+        char* buff = new char[ss];
+        dump_json(buff);
+        dispose();
+        theBuf = buff;
+        size = ss;
+        capacity = 0;
+        len = 0;
+        type = n_String;
       }
 
       int dump_json(char* buff) //converts n_Object to string

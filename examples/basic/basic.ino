@@ -1,21 +1,46 @@
-#include <lnode.h>
-#include <nseriallink.h>
+#include <nnode.h>
+#include <nesp32link.h>
+#include <data/ndb.h>
 
 #define LED LED_BUILTIN
 
-Node<int> node;
-SerialLink lnk;
+Node<nString> node;
+DB db(&node);
+Esp32Link lnk;
+
+nString vv;
 
 void setup() {
   Serial.begin(38400);
-  lnk.begin(&Serial);
+  debug.setOutput(&Serial);
+  debug.level = LOW_LEVEL;
+  lnk.begin();
 
-  node.inputs = "led";
+  vv = "hello";
+
+  node.inputs = "store query";
+  node.outputs = "fetch";
   node.init("node##", &lnk);
 
-  node["led"] >> digitalPin(LED);
+  node["store"] >> [](nString val, nString sender) {
+    db.set("people", val);
+    val.parse_as_json();
+    vv = val;
+  };
 
-  pinMode(LED, OUTPUT);
+  node["query"] >> [](nString val, nString sender) {
+    db.get("people", val, [](nString value){
+        node["fetch"] = value;
+        vv = value;
+        vv.parse_as_json();
+    });
+  };
+
+  node["fetch"] << []() -> nString {
+    nString val = vv;
+    val.toString();
+    return val;
+  };
 }
 
 void loop() {

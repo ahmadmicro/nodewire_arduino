@@ -67,6 +67,7 @@ class Link
               message.convert_object("address command sender");
             else
             {
+              message.println(&Serial);
               resetmessage();
               return false;
             }

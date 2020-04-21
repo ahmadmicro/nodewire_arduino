@@ -82,7 +82,9 @@ class Port
 template <class NVT>
 class Remote
 {
+public:
   typedef void (*whenHandler)(NVT value);
+private:
   nString* response;
   Port<NVT>* port=NULL;
   whenHandler when_handler = NULL;
@@ -127,12 +129,17 @@ public:
 
   void handle(nString port, nString value)
   {
-      value.parse_as_json();
+      //value.parse_as_json();
       val = (NVT)value;
       if(when_handler!=NULL && port == when_condition)
       {
           when_handler(val);
       }
+  }
+
+  void set(nString val)
+  {
+    *response = val;
   }
 };
 
