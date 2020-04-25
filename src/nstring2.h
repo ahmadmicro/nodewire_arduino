@@ -95,8 +95,9 @@ class nString{
 
       nString(const char* buff)
       {
-        theBuf = strdup(buff);
         size = strlen(buff)+1;
+        theBuf = new char[size];
+        strncpy(theBuf, buff, size);
         should_dispose = true;
 
         capacity = 0;
@@ -129,11 +130,13 @@ class nString{
             if(op.size<=size)
             {
               memcpy(theBuf,  op.theBuf, op.size);
-              if(op.size!=size)
-                memset(theBuf+op.size, '\0' ,size-op.size);
             }
             else if(!should_dispose)
-                memcpy(theBuf,  op.theBuf, size-1);
+            {
+              //Serial.print("truncated copy:");
+              Serial.println(op.theBuf);
+              memcpy(theBuf,  op.theBuf, size-1);  
+            }
             else if(size!=0)
             {
                 char* temp = new char[op.size];
@@ -154,7 +157,7 @@ class nString{
         }
         else if(op.elements!=NULL)
         {
-           delete_elements();
+            delete_elements();
             if(op.size<=size)
             {
               memcpy(theBuf, op.theBuf, op.size);
@@ -162,7 +165,10 @@ class nString{
                  memset(theBuf+op.size, '\0' ,size-op.size);
             }
             else
+            {
               memcpy(theBuf, op.theBuf, size);
+              //Serial.println("copy object truncated");
+            }
             elements = new nString*[op.capacity];
             len = op.len;
             capacity = op.capacity;
@@ -173,6 +179,7 @@ class nString{
               else
                 elements[i] = new nString(elements[i-1]->theBuf+op.elements[i-1]->size, op.elements[i]->size);
               elements[i]->type = op.elements[i]->type;
+              *elements[i] = *op.elements[i];
             }
             if(op.keys!=NULL)
             {
@@ -188,7 +195,7 @@ class nString{
         }
         else
         {
-          Serial.print("Failed to assign:");
+          Serial.print("Failed to assign 2:");
           Serial.println(op.theBuf);
           type = 0;
         }
@@ -217,7 +224,7 @@ class nString{
         }
       }
 
-      /*bool createBuffer(int l)
+      bool createBuffer(int l)
       {
         if(theBuf==NULL) 
         {
@@ -233,7 +240,7 @@ class nString{
           return true;
         }
         return false;
-      }*/
+      }
 
       nString(double buff)
       {
@@ -523,8 +530,11 @@ class nString{
         if(pos!=0)
             *this = (theBuf+pos);
         int end = strlen(theBuf)-1;
-        while(isspace(theBuf[end]) && end!=pos) end--;
-        theBuf[end+1] = '\0';
+        while(isspace(theBuf[end]) && end!=pos) 
+        {
+          theBuf[end] = '\0';
+          end--;
+        }
      }
 
       nString& tail(int i)
@@ -698,8 +708,9 @@ class nString{
         }
       }
 
-      int find(nString item)
+      int find(nString query)
       {
+        nString item = query;
         int q = item.split('=');
         for(int i=0;i<len;i++)
         {
@@ -721,8 +732,11 @@ class nString{
         {
           for(int i=0;i<len;i++)
           {
-            delete elements[i];
-            elements[i] =  NULL;
+            if(elements[i]!=NULL)
+            {
+              delete elements[i];
+              elements[i] =  NULL;
+            }
           }
 
           delete[] elements;
@@ -915,6 +929,10 @@ class nString{
             {
               separator = '\"'; looking = false;
             }
+            else if(theBuf[i]=='\'')
+            {
+              separator = '\''; looking = false;
+            }
           }
           else
           {
@@ -922,6 +940,7 @@ class nString{
             if(separator=='[' && theBuf[i]==']') looking = true;
             if(separator=='{' && theBuf[i]=='}') looking = true;
             if(separator=='\"' && theBuf[i]=='\"') looking = true;
+            if(separator=='\'' && theBuf[i]=='\'') looking = true;
           }
         }
 
@@ -959,14 +978,17 @@ class nString{
 
       void toString(int ss=100)
       {
-        char* buff = new char[ss];
-        dump_json(buff);
-        dispose();
-        theBuf = buff;
-        size = ss;
-        capacity = 0;
-        len = 0;
-        type = n_String;
+        if(should_dispose)
+        {
+          char* buff = new char[ss];
+          dump_json(buff);
+          dispose();
+          theBuf = buff;
+          size = ss;
+          capacity = 0;
+          len = 0;
+          type = n_String;
+        }
       }
 
       int dump_json(char* buff) //converts n_Object to string
@@ -1076,7 +1098,7 @@ class nString{
           keys->split(' ');
           for(int i = 0;i<len;i++)
           {
-            //(*elements[i])[1].trim();
+            //elements[i]->trim();
             *elements[i] = (*elements[i])[1].theBuf;
             elements[i]->collapse();
             elements[i]->parse_as_json();
@@ -1102,31 +1124,66 @@ class nString{
         serial->println();
       }
 
-      void print()
+      void tabs(int n)
+      {
+        for(int i=0;i<n;i++) Serial.print("  ");
+      }
+
+      void dump()
+      {
+        Serial.print("theBuf");
+        Serial.print(":");
+        Serial.println(theBuf);
+        Serial.print("size");
+        Serial.print(":");
+        Serial.println(size);
+        Serial.print("type");
+        Serial.print(":");
+        Serial.println(type);
+        Serial.print("should_dispose");
+        Serial.print(":");
+        Serial.println(should_dispose);
+        Serial.print("len");
+        Serial.print(":");
+        Serial.println(len);
+        Serial.print("capacity");
+        Serial.print(":");
+        Serial.println(capacity);
+        Serial.print("elements");
+        Serial.print(":");
+        Serial.println((long)elements);
+        Serial.print("keys");
+        Serial.print(":");
+        Serial.println((long)keys);
+      }
+
+      void print(int n=1)
       {
         if(type==n_Array)
         {
            Serial.println("[");
            for(int i=0;i<len;i++)
            {
-             Serial.print("  ");
-             elements[i]->print();
+             tabs(n);
+             elements[i]->print(n+1);
              Serial.println(",");
            }
-           Serial.println("]");
+           tabs(n-1);
+           Serial.print("]");
         }
         else if(type==n_Object)
         {
           Serial.println("{");
           for(int i=0;i<len;i++)
           {
-            Serial.print("  ");
+            tabs(n);
             (*keys)[i].print();
             Serial.print(":");
-            elements[i]->print();
+            elements[i]->print(n+1);
             Serial.println(",");
           }
-          Serial.println("}");
+          tabs(n-1);
+          Serial.print("}");
         }
         else if(type==n_String)
         {

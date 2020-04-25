@@ -118,7 +118,8 @@ public:
     nString entry(directory, 24);
     int no = no_files();
     if(no==-1) return "";
-    nString Directory(new char[no*24]);
+    nString Directory;//(new char[no*24]);
+    Directory.createBuffer(no*24);
     for(int fileno=0;fileno<no;fileno++)
     {
       entry.collapse();
@@ -231,7 +232,7 @@ public:
 
           return true;
         }
-        else if(content.size<=(int)entry[3])
+        else if(strlen(content.theBuf)<=(int)entry[3])
         {
             int pos = (int) entry[2];
             int cap = (int) entry[3];

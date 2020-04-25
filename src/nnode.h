@@ -349,7 +349,10 @@ public:
       remote_address = nodename;
       remote_handle = std::tr1::bind(&Remote<NVT>::handle, (Remote<NVT>*)remote, std::tr1::placeholders::_1, std::tr1::placeholders::_2);
 
-      _link->response = "cp subscribe "; _link->response += nodename; _link->response += " portvalue ";  _link->response = _link->response + address;
+      _link->response = "cp subscribe "; 
+      _link->response += nodename;
+      _link->response += " portvalue "; 
+      _link->response = _link->response + address;
       _link->checkSend();
     }
     return *((Remote<NVT>*)remote);
