@@ -20,6 +20,7 @@
         "xlocmon": "cpp",
         "xlocnum": "cpp",
         "xloctime": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "future": "cpp"
     }
 }

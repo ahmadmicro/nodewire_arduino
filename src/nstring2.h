@@ -232,6 +232,7 @@ class nString{
           size = l;
           type = n_String;
           should_dispose = true;
+          clearBuffer();
 
           capacity = 0;
           len = 0;

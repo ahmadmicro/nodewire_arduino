@@ -6,6 +6,8 @@
 Node<int> node;
 Esp32Link lnk;
 
+int count;
+
 void setup() {
   Serial.begin(38400);
   debug.setOutput(&Serial);
@@ -13,10 +15,25 @@ void setup() {
   
   lnk.begin();
 
-  node.inputs = "led";
+  node.inputs = "led reset";
+  node.outputs = "count";
   node.init("node##", &lnk);
 
   node["led"] >> digitalPin(LED);
+  
+  node["reset"] >> [](nString val, nString sender) {
+    count = (int)val;
+  };
+
+  node["count"] << []()->nString {
+    return count;
+  };
+
+  node.timer(1000, []() {
+    node["count"] = count++;
+  });
+
+  node.startTimer(0);
 
   pinMode(LED, OUTPUT);
 }

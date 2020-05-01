@@ -24,7 +24,7 @@ nString can hold the following types: int/long, float/double, string, dictionary
 the internal buffer automatically grows to accomodate the longer string.
 When the internal buffer is auto-allocated, nString takes care of releasing it when it is no longer needed.
 
-**Fixed Buffer*
+**Fixed Buffer**
 When you do not want unexpected memory allocation, you can pre-assign an existing buffer and the nString will
 limit itself to the buffer provided:
 
@@ -68,7 +68,7 @@ Arrays must have a fixed buffer size, either by assigning a value during declara
 
 .. code-block:: c++
 
-    nString list = "['one', 2, 'Abuja, FCT', 4.5]";;
+    nString list = "['one', 2, 'Abuja, FCT', 4.5]";
     list.parse_as_json();
     for(int i = 0; i<list.len; i++)
         Serial.println((char*)list[i]);

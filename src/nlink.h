@@ -60,7 +60,10 @@ class Link
         int len = message.splitPT(' ');
         #ifdef NODE_H
             if(len==5)
+            {
               message.convert_object("address command port value sender");
+              //message["value"].parse_as_json();
+            }
             else if(len==4)
               message.convert_object("address command port sender");
             else if(len==3)

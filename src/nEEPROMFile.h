@@ -54,6 +54,9 @@ public:
         EEPROM.write(i, 0);
         i++;
       }
+      #if defined ESP8266 || ESP32
+        EEPROM.commit();
+      #endif
   }
 
   void create_FS(int no_files)

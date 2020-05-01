@@ -65,6 +65,19 @@ class Port
      return *this;
    }
 
+   /*void doit(nString value)
+   {
+     *response = (remote)?cmd:"re portvalue ";
+     *response +=portname;
+     *response += " ";
+     nString temp = value;
+     temp.toString();
+     *response += temp;
+     *response += " ";
+     *response += *nodename;
+     *val = value;
+   }*/
+
   void operator>>(setHandler hh){
     *handler.set_handler = hh;
   }
@@ -78,6 +91,11 @@ class Port
     return (PVT)(*val);
   }
 };
+
+/*template<> Port<nString>& Port<nString>::operator=(nString value){
+  doit(value);
+  return *this;
+}*/
 
 template <class NVT>
 class Remote

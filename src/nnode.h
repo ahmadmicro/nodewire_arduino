@@ -448,12 +448,14 @@ public:
              if(read_handlers[port]!=NULL)
              {
                  nString val = read_handlers[port]();
+                 //val.toString();
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
                  _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
              }
              else if(get_portvalue!=NULL)
              {
                  nString val = get_portvalue(_link->message["port"]);
+                 //val.toString();
                  if(strlen(_link->response.theBuf)!=0) _link->checkSend();
                  _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + val + " " + address;
              }
@@ -469,6 +471,8 @@ public:
             if(port!=-1)
             {
                 if(strlen(_link->response.theBuf)!=0) _link->checkSend();
+                //nString val = portvalues[port];
+                //val.toString();
                 _link->response = _link->message["sender"] + " portvalue " + _link->message["port"] + " " + portvalues[port] + " " + address;
             }
           }
