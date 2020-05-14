@@ -52,7 +52,7 @@ class nString{
       nString* keys = NULL;
 
       nString(){
-        should_dispose = false;
+        should_dispose = true;
         theBuf = NULL;
         size = 0;
         capacity = 0;
@@ -605,6 +605,7 @@ class nString{
 
       void create_object(nString dKeys)
       {
+        if(theBuf==NULL) createBuffer(30);
         delete_elements();
         char* temp = new char[dKeys.size];
         keys = new nString(temp, dKeys.size);
@@ -683,14 +684,40 @@ class nString{
 
                   for(long i = 0; i<size-(target-theBuf);i++)
                       target[i] = source[i];
-                  //size_t sz = elements[0]->size;
+                  int cum = 0;
+                  int ss = elements[location+1]->size;
                   for(int i=location+1;i<len-1;i++)
                   {
-                      elements[i]->theBuf += (elements[i]->size-elements[location]->size);
-                      elements[i-1]->size = elements[i]->size;
+                    cum = cum + elements[i]->size - elements[i-1]->size;
+                    elements[i]->theBuf += cum;
                   }
-                  elements[len-2]->size = elements[len-1]->size;
-                  //elements[0]->size = sz;
+
+                  cum = 0;
+                  for(int i=location+1;i<len-1;i++)  
+                  {
+                    cum = cum + elements[i+1]->size - elements[i]->size;
+                    elements[i]->size = elements[i+1]->size;
+                    elements[i]->type = elements[i+1]->type;
+                    if(elements[i+1]->type == n_Array || elements[i+1]->type == n_Object)
+                    {
+                      elements[i]->len = elements[i+1]->len;
+                      elements[i]->capacity = elements[i+1]->capacity;
+                      elements[i]->elements = new nString*[elements[i]->capacity];
+                      for(int j=0;j<elements[i+1]->len;j++)
+                      {
+                        elements[i]->elements[j] = elements[i+1]->elements[j];
+                        elements[i]->elements[j]->theBuf = elements[i]->theBuf+(elements[i+1]->elements[j]->theBuf-elements[i+1]->theBuf)+elements[i+1]->size;
+                        elements[i]->elements[j]->size = elements[i+1]->elements[j]->size;
+                      }
+                      elements[i+1]->elements = NULL;
+                      if(elements[i+1]->type == n_Object)
+                      {
+                        elements[i]->keys = elements[i+1]->keys;
+                        elements[i+1]->keys = NULL;
+                      }
+                    }
+                  }
+                  elements[location]->size = ss;
               }
 
               delete elements[len-1];
@@ -708,7 +735,11 @@ class nString{
           len--;
         }
       }
-
+      /*
+ 4   4   6     5     5   4
+one two three four five six
+one three four five six
+*/
       int find(nString query)
       {
         nString item = query;

@@ -205,7 +205,7 @@ private:
           switch (szTemp[t])
           {
               case 'x' : { c = szHex [r]; } break;
-              case 'y' : { c = szHex [r & 0x03 | 0x08]; } break;
+              case 'y' : { c = szHex [(r & 0x03) | 0x08]; } break;
               case '-' : { c = '-'; } break;
               case '4' : { c = '4'; } break;
           }
