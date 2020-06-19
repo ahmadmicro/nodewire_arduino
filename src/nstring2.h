@@ -415,16 +415,61 @@ class nString{
       }
       nString operator+=(const int op)
       {
-        char temp[10]; itoa(op, temp, 10);
-        strcat(theBuf, temp);
-        type = n_String;
+        int lenght = 4;
+        if (op>5000) lenght = 10;
+        if(size<strlen(theBuf)+lenght)
+        {
+          if(should_dispose)
+          {
+            size = strlen(theBuf)+lenght;
+            char* temp1 = new char[size];
+            strcpy(temp1, theBuf);
+            char temp[lenght]; itoa(op, temp, lenght);
+            strcat(temp1, temp);
+            delete[] theBuf;
+            theBuf = temp1;
+          }
+          else
+          {
+            /* not added */
+          }
+          
+        }
+        else
+        {
+          char temp[10]; itoa(op, temp, 10);
+          strcat(theBuf, temp);
+          type = n_String;
+        }
+        
         return *this;
       }
       
       nString operator+=(const double op)
       {
-        char temp[size_double]; dtostrf(op, size-1, precision, temp);
-        strcat(theBuf, temp);
+        if(size<strlen(theBuf)+size_double)
+        {
+          if(should_dispose)
+          {
+            size = strlen(theBuf)+size_double;
+            char* temp1 = new char[size];
+            strcpy(temp1, theBuf);
+            char temp[size_double]; dtostrf(op, size-1, precision, temp1);
+            strcat(temp1, temp);
+            delete[] theBuf;
+            theBuf = temp1;
+          }
+          else
+          {
+            /* not added */
+          }
+        }
+        else
+        {
+          char temp[size_double]; dtostrf(op, size-1, precision, temp);
+          strcat(theBuf, temp);
+        }
+
         return *this;
       }
 
@@ -443,15 +488,13 @@ class nString{
 
       nString operator+(const int op)
       {
-        char temp[10]; itoa(op, temp, 10);
-        strcat(theBuf, temp);
+        *this+=op;
         return *this;
       }
 
       nString operator+(const double op)
       {
-        char temp[size_double]; dtostrf(op, size-1, precision, temp);
-        strcat(theBuf, temp);
+        *this+=op;
         return *this;
       }
 

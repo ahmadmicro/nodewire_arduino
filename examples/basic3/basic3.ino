@@ -12,28 +12,12 @@ void setup() {
   Serial.begin(38400);
   debug.setOutput(&Serial);
   debug.level = LOW_LEVEL;
-  
   lnk.begin();
 
-  node.inputs = "led reset";
-  node.outputs = "count";
+  node.inputs = "led";
   node.init("node##", &lnk);
 
   node["led"] >> digitalPin(LED);
-  
-  node["reset"] >> [](nString val, nString sender) {
-    count = (int)val;
-  };
-
-  node["count"] << []()->nString {
-    return count;
-  };
-
-  node.timer(1000, []() {
-    node["count"] = count++;
-  });
-
-  node.startTimer(0);
 
   pinMode(LED, OUTPUT);
 }
