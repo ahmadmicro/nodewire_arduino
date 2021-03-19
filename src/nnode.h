@@ -45,7 +45,8 @@
 }                                                                \
 
 #define digitalPin(pin) [](nString val, nString sender) {digitalWrite(pin,(int)val);}  
-#define outputValue(var) []() -> nString {  return var;}               
+#define outputValue(var) []() -> nString {  return var;}      
+//#define inputValue(var) [](nString val, nString sender)  {  var = val;} // not tested            
 
 typedef  void (*timerHandler)();
 
